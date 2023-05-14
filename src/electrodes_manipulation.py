@@ -94,4 +94,12 @@ class Eletrode:
         print(f"Std: {np.std(array)}")
         print(f"Maximum: {np.max(array)}")
         print(f"Minumum: {np.min(array)}")
+        
+    # Plota as classes de features em azul = positivo e vermelho = negativo
+    def plot_classes(positive, negative):
+        fig, ax = plt.subplots(figsize=(7,5))
+        ax.scatter(np.linspace(0, len(positive), len(positive)), positive, color='b', label='Positive')
+        ax.scatter(np.linspace(0, len(negative), len(negative)), negative, color='r', label='Negative')
+        plt.legend()
+        plt.show()
 
