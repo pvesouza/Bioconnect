@@ -93,6 +93,21 @@ bool SerialFacade::sendChronoAmperometryRequest()
     return false;
 }
 
+QJsonArray *SerialFacade::getMeasurements()
+{
+    return this->jsonConverter->getMeasurements();
+}
+
+void SerialFacade::clearMeasurements()
+{
+    this->jsonConverter->clearMeasurements();
+}
+
+void SerialFacade::saveFile()
+{
+    jsonConverter->writecsv();
+}
+
 void SerialFacade::setupConnections()
 {
     connect(myReader, &SerialPortReader::handleDataReceived, this, &SerialFacade::handleDataReceived);
@@ -101,37 +116,42 @@ void SerialFacade::setupConnections()
 
 void SerialFacade::handleDataReceived(QString data)
 {
-//    qDebug() << "Serial Facade: " << data;
+   // qDebug() << "Serial Facade: " << data;
     QStringList packetList = data.split('\n');
 
     for (int i = 0; i < packetList.size(); i++)
     {
         QString s = packetList.at(i);
         if ("Pico_OK" == s){
-            emit on_pico_status_received(true);
+            emit on_pico_status_received(Protocol::Emstat_OK);
         }
         else if ("Receiving_measurement" == s)
         {
             this->status = this->status + 1;
+            if (this->status == 2){
+                emit on_pico_status_received(Protocol::Begin_Measurement);
+            }
         }
         else if ("End_Measurement" == s){
             this->status = 0;
-            jsonConverter->writecsv();
+            //jsonConverter->writecsv();
+            emit on_pico_status_received(Protocol::Finished_Measurement);
              // Finaliza a medição e também salva o arquivo
          }
         else if ("Pico_NOK" == s){
-           emit on_pico_status_received(false);
+           emit on_pico_status_received(Protocol::Emstat_NOK);
         }
 
         if (s.contains("{") && s.contains("}") && this->status == 2){
             //Json Packet
+            //qDebug() << s;
             QString csvLine = jsonConverter->convertJsonToCSV(s);
-            emit on_jsonline_received(csvLine);
-//            qDebug() << csvLine;
+            //qDebug() << csvLine;
 
             if (csvLine.length() > 2)
             {
               jsonConverter->addLine(csvLine);
+              emit jsonline_received(csvLine);
             }
 
         }

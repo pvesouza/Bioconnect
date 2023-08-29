@@ -7,26 +7,27 @@
 #include <QDebug>
 #include <cstdio>
 #include <QDateTime>
+#include <QJsonDocument>
+#include <QJsonArray>
+#include <QJsonObject>
 
 class JsonToCsvConverter
 {
 public:
     JsonToCsvConverter();
     QString convertJsonToCSV(QString stringJson);
-//    bool openCSVFile(int number);
     void writecsv();
-//    bool isCSVOpened();
-//    void closeCsv();
     void addLine(QString line);
+    QJsonArray *getMeasurements();
+    QByteArray convertToByteArray(const QJsonArray *myJson);
+    void clearMeasurements();
 
 
 private:
     const char *FILE_PATH = "C:\\Users\\pveso\\Documents\\Covid_Firmware\\data_curves\\";
     const char *fileName = "data";
     QString allLines = "";
-//    bool isOpen = false;
-//    QFile myfile;
-//    QTextStream myStream;
+    QJsonArray *measurements;
 
 };
 

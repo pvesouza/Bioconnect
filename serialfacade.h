@@ -23,18 +23,21 @@ public:
     bool sendPulseDifferentialRequest();
     bool sendTestConnectionRequest();
     bool sendChronoAmperometryRequest();
+    QJsonArray *getMeasurements();
+    void clearMeasurements();
+    void saveFile();
 
 signals:
-    void on_pico_status_received(bool status);
-    void on_jsonline_received(QString line);
+    void on_pico_status_received(Protocol::STATUS status);
+    void jsonline_received(QString line);
 
 private:
     SerialPortReader *myReader = nullptr;
     SerialPortWriter *myWriter = nullptr;
     SerialConnection *myConnection = nullptr;
     SerialManager *myPortsManager = nullptr;
-    Protocol protocol;
     JsonToCsvConverter *jsonConverter = nullptr;
+    Protocol protocol;
     int status = 0;
 
     void setupConnections();

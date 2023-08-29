@@ -5,12 +5,14 @@
 #include <QString>
 #include <QDebug>
 #include <QLabel>
+#include <QQueue>
 #include <QtCharts/QChartView>
 #include <QtCharts/QLineSeries>
 #include <QtCharts/QValueAxis>
 
 #include "serialfacade.h"
 #include "serialmanager.h"
+#include "apifacade.h"
 
 
 QT_BEGIN_NAMESPACE
@@ -36,22 +38,29 @@ private slots:
 
     void on_pushButton_test_clicked();
 
-    void on_pico_status_received(bool status);
+    void pico_status_received(Protocol::STATUS status);
 
-    void on_jsonline_received(QString line);
+    void jsonline_received(QString line);
 
-    void on_handle_chart_update();
+    void handle_chart_update();
+
+    void handle_api_response(QString response);
 
 
 
 private:
     Ui::MainWindow *ui;
     SerialFacade *mySerialFacade = nullptr;
+    ApiFacade *myNetworkApi = nullptr;
+    int time_passed = 0;
+
     QStringList listOfAnalysis = {
       "Analysis 1",
        "Analysis 2",
         "Analysis 3"
     };
+    double max_current;
+    double min_current;
 
     // Graphical elements
     QtCharts::QChart *chart = nullptr;
@@ -60,7 +69,11 @@ private:
     QtCharts::QValueAxis *axisX = nullptr;
     QtCharts::QValueAxis *axisY = nullptr;
     QTimer *timer = nullptr;
+    QQueue<double> *potQueue = nullptr;
+    QQueue<double> *currQueue = nullptr;
 
+
+    bool plot = false;
     void init_chart();
 
 };

@@ -15,6 +15,15 @@ public:
     const char *CYCLIC = "scan\n";
     const char* CMD_VERSION_STRING = "pico_ver\n";
 
+    typedef enum application_status{
+        Emstat_OK,
+        Emstat_NOK,
+        Finished_Measurement,
+        Begin_Measurement
+
+    }STATUS;
+
+
 private:
 
 };

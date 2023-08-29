@@ -2,7 +2,7 @@
 
 JsonToCsvConverter::JsonToCsvConverter()
 {
-
+    measurements = new QJsonArray();
 }
 
 QString JsonToCsvConverter::convertJsonToCSV(QString stringJson)
@@ -47,6 +47,7 @@ QString JsonToCsvConverter::convertJsonToCSV(QString stringJson)
             }
         }
     }
+
     if (potential.length() > 2 && current.length() > 2)
     {
         result = result.append(potential);
@@ -86,7 +87,7 @@ void JsonToCsvConverter::writecsv()
         QTextStream stream(&myFile);
         stream << "potential,current\n";
         stream << allLines;
-        qDebug() << "file written";
+        //qDebug() << "file written";
         myFile.flush();
         myFile.close();
         allLines.clear();
@@ -112,12 +113,41 @@ void JsonToCsvConverter::writecsv()
 void JsonToCsvConverter::addLine(QString line)
 {
     QStringList numbers = line.split(",");
+
     double potential = numbers[0].toDouble();
     double current = numbers[1].toDouble();
+
     QString potential_value = QString::number(potential, 'f', std::numeric_limits<double>::max_digits10);
     QString current_value = QString::number(current, 'f', std::numeric_limits<double>::max_digits10);
+
     allLines = allLines.append(potential_value);
     allLines.append(',');
     allLines.append(current_value);
     allLines.append('\n');
+
+    QJsonObject json;
+    json["V"] = potential_value;
+    json["I"] = current_value;
+    measurements->append(json);
+}
+
+QJsonArray *JsonToCsvConverter::getMeasurements()
+{
+    return measurements;
+}
+
+QByteArray JsonToCsvConverter::convertToByteArray(const QJsonArray *myJson)
+{
+    // Convert JSON data to QByteArray
+    QJsonDocument jsonDoc(*myJson);
+    QByteArray postData = jsonDoc.toJson();
+    return postData;
+}
+
+void JsonToCsvConverter::clearMeasurements()
+{
+    for (int i = 0; i < measurements->size(); i++)
+    {
+        measurements->removeAt(i);
+    }
 }
