@@ -48,6 +48,8 @@ private slots:
 
 
 
+    void on_pushButton_analyze_clicked();
+
 private:
     Ui::MainWindow *ui;
     SerialFacade *mySerialFacade = nullptr;

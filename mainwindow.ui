@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>922</width>
-    <height>648</height>
+    <width>801</width>
+    <height>618</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -29,12 +29,18 @@
        <property name="text">
         <string>Serial Ports</string>
        </property>
+       <property name="margin">
+        <number>8</number>
+       </property>
       </widget>
      </item>
      <item>
       <widget class="QLabel" name="label_3">
        <property name="text">
         <string>0</string>
+       </property>
+       <property name="margin">
+        <number>8</number>
        </property>
       </widget>
      </item>
@@ -43,12 +49,18 @@
        <property name="text">
         <string>Status Pico</string>
        </property>
+       <property name="margin">
+        <number>8</number>
+       </property>
       </widget>
      </item>
      <item>
       <widget class="QLabel" name="label_pico_status">
        <property name="text">
         <string/>
+       </property>
+       <property name="margin">
+        <number>8</number>
        </property>
       </widget>
      </item>
@@ -57,12 +69,18 @@
        <property name="text">
         <string>Measure Status</string>
        </property>
+       <property name="margin">
+        <number>8</number>
+       </property>
       </widget>
      </item>
      <item>
       <widget class="QLabel" name="label_meas_status">
        <property name="text">
         <string/>
+       </property>
+       <property name="margin">
+        <number>8</number>
        </property>
       </widget>
      </item>
@@ -120,9 +138,9 @@
     <property name="geometry">
      <rect>
       <x>350</x>
-      <y>90</y>
-      <width>160</width>
-      <height>80</height>
+      <y>100</y>
+      <width>271</width>
+      <height>51</height>
      </rect>
     </property>
     <layout class="QVBoxLayout" name="verticalLayout_3">
@@ -141,7 +159,7 @@
    <widget class="QWidget" name="verticalLayoutWidget_4">
     <property name="geometry">
      <rect>
-      <x>530</x>
+      <x>630</x>
       <y>90</y>
       <width>160</width>
       <height>80</height>
@@ -167,13 +185,69 @@
    <widget class="QWidget" name="verticalLayoutWidget_5">
     <property name="geometry">
      <rect>
-      <x>350</x>
-      <y>220</y>
+      <x>240</x>
+      <y>190</y>
       <width>551</width>
       <height>381</height>
      </rect>
     </property>
     <layout class="QVBoxLayout" name="layout_chart"/>
+   </widget>
+   <widget class="QWidget" name="verticalLayoutWidget_6">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>190</y>
+      <width>221</width>
+      <height>80</height>
+     </rect>
+    </property>
+    <layout class="QVBoxLayout" name="verticalLayout_5">
+     <item>
+      <widget class="QPushButton" name="pushButton_analyze">
+       <property name="text">
+        <string>Analyze</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <layout class="QHBoxLayout" name="horizontalLayout_2">
+       <item>
+        <widget class="QLabel" name="label_6">
+         <property name="text">
+          <string>Result: </string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="label_result">
+         <property name="text">
+          <string/>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+    </layout>
+   </widget>
+   <widget class="QWidget" name="horizontalLayoutWidget_3">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>539</y>
+      <width>221</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <layout class="QHBoxLayout" name="horizontalLayout_3">
+     <item>
+      <widget class="QLabel" name="label_status_api">
+       <property name="text">
+        <string/>
+       </property>
+      </widget>
+     </item>
+    </layout>
    </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">
@@ -181,7 +255,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>922</width>
+     <width>801</width>
      <height>22</height>
     </rect>
    </property>

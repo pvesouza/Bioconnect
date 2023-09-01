@@ -11,6 +11,7 @@ MainWindow::MainWindow(QWidget *parent)
     ui->pushButton_disconnect->setEnabled(false);
     ui->pushButton_run->setEnabled(false);
     ui->pushButton_test->setEnabled(false);
+    ui->pushButton_analyze->setEnabled(false);
 
     //Initialize serial Facade
     mySerialFacade = new SerialFacade();
@@ -81,8 +82,8 @@ void MainWindow::on_pushButton_run_clicked()
 {
     mySerialFacade->sendVoltametryRequest();
     series->clear();
-    max_current = 0.0001 * 100000;
-    min_current = -0.0001 * 100000;
+    max_current = 0.0000001 * 1000000;
+    min_current = -0.0000001 * 1000000;
     axisY->setRange(min_current, max_current);
 
 }
@@ -124,12 +125,9 @@ void MainWindow::pico_status_received(Protocol::STATUS status)
         case Protocol::Finished_Measurement:
         ui->pushButton_run->setEnabled(true);
         ui->label_meas_status->setText("End Measuring!");
+        ui->pushButton_analyze->setEnabled(true);
         // API logic here
         mySerialFacade->saveFile();
-        QJsonArray *measures = mySerialFacade->getMeasurements();
-        JsonToCsvConverter json;
-        QByteArray byte_measures = json.convertToByteArray(measures);
-        myNetworkApi->sendMeasurements(byte_measures);
         break;
     }
 }
@@ -155,14 +153,14 @@ void MainWindow::handle_chart_update()
     {
         if (!currQueue->isEmpty())
         {
-             current = currQueue->dequeue() * 100000;
+             current = currQueue->dequeue() * 1000000;
              if (max_current < current)
              {
-                 max_current = 1.5 * current;
+                 max_current =  current;
              }
 
              if (min_current > current){
-                 min_current = 1.5 * current;
+                 min_current = current;
              }
 
              qDebug() << "Current: " << current;
@@ -220,6 +218,14 @@ void MainWindow::handle_chart_update()
 void MainWindow::handle_api_response(QString response)
 {
     qDebug() << "Main Window" << response;
+    if (response.contains("Error") || response.contains("time"))
+    {
+        ui->label_status_api->setText("Conection Error");
+    }else{
+        ui->label_result->setText(response);
+        ui->pushButton_analyze->setEnabled(false);
+    }
+
 }
 
 void MainWindow::init_chart()
@@ -237,7 +243,7 @@ void MainWindow::init_chart()
     axisY = new QtCharts::QValueAxis();
     axisX->setTitleText("Potential (V)");
     axisY->setTitleText("Current (uA)");
-    axisX->setRange(-1.5, 1.5);
+    axisX->setRange(-1.0, 1.0);
     chart->addAxis(axisX, Qt::AlignBottom);
     chart->addAxis(axisY, Qt::AlignLeft);
     series->attachAxis(axisX);
@@ -257,5 +263,15 @@ void MainWindow::init_chart()
 
 //    this->resize(400, 300);
 //    this->show();
+}
+
+
+void MainWindow::on_pushButton_analyze_clicked()
+{
+    //TODO - Send request to API to analyse
+    QJsonArray *measures = mySerialFacade->getMeasurements();
+    JsonToCsvConverter json;
+    QByteArray byte_measures = json.convertToByteArray(measures);
+    myNetworkApi->sendMeasurements(byte_measures);
 }
 

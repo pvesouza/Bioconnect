@@ -24,14 +24,25 @@ void ApiFacade::sendMeasurements(const QByteArray &measurements)
 void ApiFacade::handle_network_reply()
 {
     qDebug() << reply->error();
+    QString response;
+
     if (reply->error() == QNetworkReply::NoError) {
         // Read all bytes
         QByteArray responseBytes = reply->readAll();
-        // TODO - convert QByteArray to String Json
-        QString response = QString::fromStdString(responseBytes.toStdString());
+        if (responseBytes.contains('{') && responseBytes.contains('}'))
+        {
+            response = "Error on JSON";
+        }else{
+            response = QString::fromStdString(responseBytes.toStdString());
+        }
         emit on_network_response(response);
     }else {
-        emit on_network_response(reply->errorString());
+        if (reply->error() == QNetworkReply::UnknownNetworkError){
+            response = "Unknown Error";
+        }else{
+            response = reply->errorString();
+        }
+        emit on_network_response(response);
     }
     reply->deleteLater();
 }
