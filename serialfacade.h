@@ -23,13 +23,15 @@ public:
     bool sendPulseDifferentialRequest();
     bool sendTestConnectionRequest();
     bool sendChronoAmperometryRequest();
-    QJsonArray *getMeasurements();
+    QByteArray getMeasurements();
     void clearMeasurements();
-    void saveFile();
+    void saveFile(const char *filePath);
+    void saveJsonFile(const char *filePath);
 
 signals:
     void on_pico_status_received(Protocol::STATUS status);
     void jsonline_received(QString line);
+    void fileNotSavedError(void);
 
 private:
     SerialPortReader *myReader = nullptr;
@@ -46,6 +48,7 @@ private slots:
 
     void handleDataReceived(QString data);
     void handleDataWritten(QSerialPort::SerialPortError error);
+    void handleFileNotSaved();
 };
 
 #endif // SERIALFACADE_H

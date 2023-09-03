@@ -1,6 +1,8 @@
 #include "jsontocsvconverter.h"
 
-JsonToCsvConverter::JsonToCsvConverter()
+JsonToCsvConverter::JsonToCsvConverter(QObject *parent)
+    : QObject{parent}
+
 {
     measurements = new QJsonArray();
 }
@@ -73,42 +75,33 @@ QString JsonToCsvConverter::convertJsonToCSV(QString stringJson)
 //    return isOpen;
 //}
 
-void JsonToCsvConverter::writecsv()
+void JsonToCsvConverter::writecsv(const char *filePath)
 {
 
     char filename[100];
     QString date = QString::number(QDateTime::currentMSecsSinceEpoch());
-    sprintf(filename, "%s%s_%s.csv", FILE_PATH, fileName, date.toStdString().c_str());
-    qDebug() << filename;
-    QFile myFile(filename);
-    bool isOpen  = myFile.open(QIODevice::WriteOnly | QIODevice::Text);
-    if (isOpen)
+    if (filePath != nullptr)
     {
-        QTextStream stream(&myFile);
-        stream << "potential,current\n";
-        stream << allLines;
-        //qDebug() << "file written";
-        myFile.flush();
-        myFile.close();
-        allLines.clear();
+        sprintf(filename, "%s/%s_%s.csv", filePath, fileName, date.toStdString().c_str());
+        qDebug() << filename;
+        QFile myFile(filename);
+        bool isOpen  = myFile.open(QIODevice::WriteOnly | QIODevice::Text);
+        if (isOpen)
+        {
+            QTextStream stream(&myFile);
+            stream << "potential,current\n";
+            stream << allLines;
+            //qDebug() << "file written";
+            myFile.flush();
+            myFile.close();
+            allLines.clear();
+        }else{
+            emit fileNotSavedError();
+        }
+    }else{
+        emit fileNotSavedError();
     }
 }
-
-//bool JsonToCsvConverter::isCSVOpened()
-//{
-//    return isOpen;
-//}
-
-//void JsonToCsvConverter::closeCsv()
-//{
-//    if (isOpen)
-//    {
-//        myfile.flush();
-//        myfile.close();
-//        isOpen = false;
-//        qDebug() << "file closed";
-//    }
-//}
 
 void JsonToCsvConverter::addLine(QString line)
 {
@@ -131,17 +124,42 @@ void JsonToCsvConverter::addLine(QString line)
     measurements->append(json);
 }
 
-QJsonArray *JsonToCsvConverter::getMeasurements()
+QByteArray JsonToCsvConverter::getMeasurements()
 {
-    return measurements;
+    QByteArray byteData = convertToByteArray(measurements);
+    return byteData;
 }
 
 QByteArray JsonToCsvConverter::convertToByteArray(const QJsonArray *myJson)
 {
     // Convert JSON data to QByteArray
+    qDebug() << "Jsonsize(): " << myJson->size();
     QJsonDocument jsonDoc(*myJson);
     QByteArray postData = jsonDoc.toJson();
     return postData;
+}
+
+void JsonToCsvConverter::saveJsonFile(const char *filePath)
+{
+    char filename[100];
+    QString date = QString::number(QDateTime::currentMSecsSinceEpoch());
+    if (filePath != nullptr)
+    {
+        sprintf(filename, "%s/%s_%s_json.csv", filePath, fileName, date.toStdString().c_str());
+        QFile myFile(filename);
+        bool isOpen  = myFile.open(QIODevice::WriteOnly | QIODevice::Text);
+        if (isOpen)
+        {
+            QTextStream stream(&myFile);
+            stream << this->convertToByteArray(measurements).constData();
+            myFile.flush();
+            myFile.close();
+        }else{
+            emit fileNotSavedError();
+        }
+    }else{
+        emit fileNotSavedError();
+    }
 }
 
 void JsonToCsvConverter::clearMeasurements()
