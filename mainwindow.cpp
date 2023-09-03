@@ -29,6 +29,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(mySerialFacade, &SerialFacade::on_pico_status_received, this, &MainWindow::pico_status_received);
     connect(mySerialFacade, &SerialFacade::jsonline_received, this, &MainWindow::jsonline_received);
     connect(myNetworkApi, &ApiFacade::on_network_response, this, &MainWindow::handle_api_response);
+    connect(mySerialFacade, &SerialFacade::fileNotSavedError, this, &MainWindow::fileNotSaved);
 
     init_chart();
 }
@@ -127,7 +128,13 @@ void MainWindow::pico_status_received(Protocol::STATUS status)
         ui->label_meas_status->setText("End Measuring!");
         ui->pushButton_analyze->setEnabled(true);
         // API logic here
-        mySerialFacade->saveFile();
+        QString filepath = ui->lineEdit_path->text();
+
+        if (filepath.length() > 0)
+        {
+            mySerialFacade->saveFile(filepath.toUtf8().constData());
+        }
+
         break;
     }
 }
@@ -268,10 +275,24 @@ void MainWindow::init_chart()
 
 void MainWindow::on_pushButton_analyze_clicked()
 {
-    //TODO - Send request to API to analyse
-    QJsonArray *measures = mySerialFacade->getMeasurements();
-    JsonToCsvConverter json;
-    QByteArray byte_measures = json.convertToByteArray(measures);
+
+    QByteArray byte_measures = mySerialFacade->getMeasurements();
+    mySerialFacade->saveJsonFile(ui->lineEdit_path->text().toUtf8().constData());
     myNetworkApi->sendMeasurements(byte_measures);
+}
+
+
+void MainWindow::on_pushButton_clicked()
+{
+    // Chose the path to save the csv files
+    QString filePath = QFileDialog::getExistingDirectory(this, "Open File");
+    if (!filePath.isEmpty()){
+        ui->lineEdit_path->setText(filePath);
+    }
+}
+
+void MainWindow::fileNotSaved()
+{
+    ui->label_meas_status->setText("File Not saved");
 }
 

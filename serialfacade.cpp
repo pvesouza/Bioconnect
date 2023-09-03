@@ -7,7 +7,7 @@ SerialFacade::SerialFacade(QObject *parent)
     myReader = new SerialPortReader(this);
     myWriter = new SerialPortWriter(this);
     myPortsManager = new SerialManager();
-    jsonConverter = new JsonToCsvConverter();
+    jsonConverter = new JsonToCsvConverter(this);
 }
 
 // Get the number of serial ports
@@ -93,7 +93,7 @@ bool SerialFacade::sendChronoAmperometryRequest()
     return false;
 }
 
-QJsonArray *SerialFacade::getMeasurements()
+QByteArray SerialFacade::getMeasurements()
 {
     return this->jsonConverter->getMeasurements();
 }
@@ -103,15 +103,21 @@ void SerialFacade::clearMeasurements()
     this->jsonConverter->clearMeasurements();
 }
 
-void SerialFacade::saveFile()
+void SerialFacade::saveFile(const char *filePath)
 {
-    jsonConverter->writecsv();
+    jsonConverter->writecsv(filePath);
+}
+
+void SerialFacade::saveJsonFile(const char *filePath)
+{
+    jsonConverter->saveJsonFile(filePath);
 }
 
 void SerialFacade::setupConnections()
 {
     connect(myReader, &SerialPortReader::handleDataReceived, this, &SerialFacade::handleDataReceived);
     connect(myWriter, &SerialPortWriter::bytesSentStatus, this, &SerialFacade::handleDataWritten);
+    connect(jsonConverter, &JsonToCsvConverter::fileNotSavedError, this, &SerialFacade::handleFileNotSaved);
 }
 
 void SerialFacade::handleDataReceived(QString data)
@@ -165,4 +171,9 @@ void SerialFacade::handleDataWritten(QSerialPort::SerialPortError error)
     }else {
         qDebug() << "Error: " << QString::number(error);
     }
+}
+
+void SerialFacade::handleFileNotSaved()
+{
+    emit fileNotSavedError();
 }

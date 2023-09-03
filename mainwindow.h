@@ -9,6 +9,7 @@
 #include <QtCharts/QChartView>
 #include <QtCharts/QLineSeries>
 #include <QtCharts/QValueAxis>
+#include <QFileDialog>
 
 #include "serialfacade.h"
 #include "serialmanager.h"
@@ -46,9 +47,10 @@ private slots:
 
     void handle_api_response(QString response);
 
-
-
     void on_pushButton_analyze_clicked();
+
+    void on_pushButton_clicked();
+    void fileNotSaved(void);
 
 private:
     Ui::MainWindow *ui;
