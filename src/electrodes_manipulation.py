@@ -6,7 +6,10 @@ from scipy import signal
 import scipy.stats as stats
 from findpeaks import findpeaks
 
-class Eletrode:
+class Electrode:
+    
+    def __init__(self) -> None:
+        pass
 
     def convert_df_to_float_df(self, df):
         out_df = pd.DataFrame()
@@ -79,6 +82,34 @@ class Eletrode:
         out = self.filter_low_pass_butterworth(sample_rate, 5, 10, y[1:-1])
         #print(len(out))
         return (y[1:-1], out)
+    
+        # Pega os argomentos das correntes anódicas e catódicas, retorna -1 se não achar o pico
+    def getAnodicAndCathodicArguments(current, fp, ox_inf, ox_sup, red_inf, red_sup):
+        result_an_arg = 0
+        result_cat_arg = 0
+        # Encontrando os picos das duas funções
+        results = fp.fit(current)
+        #fp.plot(figsize=(12,7))
+        results_df = results['df']
+        # Separando os picos relacionados à oxidação
+        results_oxidation = results_df.iloc[ox_inf:ox_sup,:]
+        results_reduction = results_df.iloc[red_inf:red_sup, :]
+        arg_anodic = results_oxidation[results_oxidation['peak'] == True]['x'].values
+        arg_cathodic = results_reduction[results_reduction['valley'] == True]['x'].values
+        
+        if (len(arg_anodic) == 0):
+            print("Erro na corrente anódica")
+            result_an_arg = -1
+        else:
+            result_an_arg = arg_anodic[0]
+            
+        if (len(arg_cathodic) == 0):
+            print("Erro na corrente catódica")
+            result_cat_arg = -1
+        else:
+            result_cat_arg = arg_cathodic[0]
+            
+        return (result_an_arg, result_cat_arg)
     
     # Retorna a FFT e as frequências 
     def getFFTAndFrequencies(self, current, sample_period):
