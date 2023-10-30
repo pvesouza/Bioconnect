@@ -17,6 +17,8 @@ MainWindow::MainWindow(QWidget *parent)
     mySerialFacade = new SerialFacade();
     // Initialize Api
     myNetworkApi = new ApiFacade();
+    // Initialize Database Facade
+    myDbFacade = new DbFacade();
 
     // Initialize Analysis list
     for (int i = 0; i < listOfAnalysis.size(); i++)
@@ -30,6 +32,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(mySerialFacade, &SerialFacade::jsonline_received, this, &MainWindow::jsonline_received);
     connect(myNetworkApi, &ApiFacade::on_network_response, this, &MainWindow::handle_api_response);
     connect(mySerialFacade, &SerialFacade::fileNotSavedError, this, &MainWindow::fileNotSaved);
+    connect(myDbFacade, &DbFacade::db_error, this, &MainWindow::db_error);
 
     init_chart();
 }
@@ -294,5 +297,10 @@ void MainWindow::on_pushButton_clicked()
 void MainWindow::fileNotSaved()
 {
     ui->label_meas_status->setText("File Not saved");
+}
+
+void MainWindow::db_error(const QString &error_message)
+{
+     ui->label_meas_status->setText("Database Error " + error_message);
 }
 

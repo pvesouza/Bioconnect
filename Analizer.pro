@@ -2,6 +2,7 @@ QT       += core gui
 QT += serialport
 QT += charts
 QT += network
+QT += sql
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -13,6 +14,8 @@ CONFIG += c++11
 
 SOURCES += \
     apifacade.cpp \
+    dbcontroller.cpp \
+    dbfacade.cpp \
     jsontocsvconverter.cpp \
     main.cpp \
     mainwindow.cpp \
@@ -25,6 +28,8 @@ SOURCES += \
 
 HEADERS += \
     apifacade.h \
+    dbcontroller.h \
+    dbfacade.h \
     jsontocsvconverter.h \
     mainwindow.h \
     protocol.h \

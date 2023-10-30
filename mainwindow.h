@@ -14,6 +14,7 @@
 #include "serialfacade.h"
 #include "serialmanager.h"
 #include "apifacade.h"
+#include "dbfacade.h"
 
 
 QT_BEGIN_NAMESPACE
@@ -50,12 +51,16 @@ private slots:
     void on_pushButton_analyze_clicked();
 
     void on_pushButton_clicked();
+
     void fileNotSaved(void);
+
+    void db_error(const QString &error_message);
 
 private:
     Ui::MainWindow *ui;
     SerialFacade *mySerialFacade = nullptr;
     ApiFacade *myNetworkApi = nullptr;
+    DbFacade *myDbFacade = nullptr;
     int time_passed = 0;
 
     QStringList listOfAnalysis = {
