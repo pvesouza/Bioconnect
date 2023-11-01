@@ -54,6 +54,8 @@ private slots:
 
     void fileNotSaved(void);
 
+    void fileSaved(QString filename);
+
     void db_error(const QString &error_message);
 
 private:
@@ -64,10 +66,10 @@ private:
     int time_passed = 0;
 
     QStringList listOfAnalysis = {
-      "Analysis 1",
-       "Analysis 2",
-        "Analysis 3"
+      "Cyclic",
+      "PDV",
     };
+
     double max_current;
     double min_current;
 

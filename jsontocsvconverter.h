@@ -21,12 +21,14 @@ public:
     void writecsv(const char *filePath);
     void addLine(QString line);
     QByteArray getMeasurements();
+    QJsonArray *getMeasurements1();
     QByteArray convertToByteArray(const QJsonArray *myJson);
     void saveJsonFile(const char *filePath);
     void clearMeasurements();
 
 signals:
     void fileNotSavedError(void);
+    void fileSavedSuccessifully(QString filename);
 
 
 private:

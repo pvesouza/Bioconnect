@@ -32,9 +32,16 @@ MainWindow::MainWindow(QWidget *parent)
     connect(mySerialFacade, &SerialFacade::jsonline_received, this, &MainWindow::jsonline_received);
     connect(myNetworkApi, &ApiFacade::on_network_response, this, &MainWindow::handle_api_response);
     connect(mySerialFacade, &SerialFacade::fileNotSavedError, this, &MainWindow::fileNotSaved);
+    connect(mySerialFacade, &SerialFacade::fileSavedSuccess, this, &MainWindow::fileSaved);
     connect(myDbFacade, &DbFacade::db_error, this, &MainWindow::db_error);
 
+
     init_chart();
+    if (this->myDbFacade->open()){
+        qDebug() << "DB Opened";
+    }else{
+       qDebug() << "DB not Opened";
+    }
 }
 
 MainWindow::~MainWindow()
@@ -84,11 +91,23 @@ void MainWindow::on_pushButton_disconnect_clicked()
 
 void MainWindow::on_pushButton_run_clicked()
 {
-    mySerialFacade->sendVoltametryRequest();
-    series->clear();
-    max_current = 0.0000001 * 1000000;
-    min_current = -0.0000001 * 1000000;
-    axisY->setRange(min_current, max_current);
+    if (this->ui->comboBox_technique->currentText().contains("Cyclic"))
+    {
+       mySerialFacade->sendVoltametryRequest();
+       series->clear();
+       max_current = 0.0000001 * 1000000;
+       min_current = -0.0000001 * 1000000;
+       axisY->setRange(min_current, max_current);
+    }else if (this->ui->comboBox_technique->currentText().contains("PDV"))
+    {
+        mySerialFacade->sendPulseDifferentialRequest();
+        series->clear();
+        max_current = 0.0000001 * 1000000;
+        min_current = -0.0000001 * 1000000;
+        axisY->setRange(min_current, max_current);
+    }else{
+        qDebug() << "Nothing selected";
+    }
 
 }
 
@@ -96,6 +115,7 @@ void MainWindow::on_pushButton_run_clicked()
 void MainWindow::on_pushButton_test_clicked()
 {
     mySerialFacade->sendTestConnectionRequest();
+//    this->myDbFacade->insert_values("{\"teste\": a, \"V\": b}", "teste", false);
 }
 
 void MainWindow::pico_status_received(Protocol::STATUS status)
@@ -279,9 +299,9 @@ void MainWindow::init_chart()
 void MainWindow::on_pushButton_analyze_clicked()
 {
 
-    QByteArray byte_measures = mySerialFacade->getMeasurements();
+//    QJsonArray *byte_measures = mySerialFacade->getMeasurements1();
     mySerialFacade->saveJsonFile(ui->lineEdit_path->text().toUtf8().constData());
-    myNetworkApi->sendMeasurements(byte_measures);
+//    myNetworkApi->sendMeasurements(byte_measures);
 }
 
 
@@ -299,8 +319,28 @@ void MainWindow::fileNotSaved()
     ui->label_meas_status->setText("File Not saved");
 }
 
+void MainWindow::fileSaved(QString filename)
+{
+    QJsonArray *byte_measures = mySerialFacade->getMeasurements1();
+    QString technique = this->ui->comboBox_technique->currentText();
+    QString label = this->ui->lineEdit_label->text();
+
+    qDebug() << "File Saved" << filename;
+
+    if (technique == "Cyclic")
+    {
+        // Save in DB (table cyclic)the filename and label
+        this->myDbFacade->insert_values(byte_measures, label, false);
+    }else if (technique == "PDV")
+    {
+        // Save in DB (table pdv)the filename and label
+         this->myDbFacade->insert_values(byte_measures, label, true);
+    }
+}
+
 void MainWindow::db_error(const QString &error_message)
 {
+     qDebug() << "DB Error" << error_message;
      ui->label_meas_status->setText("Database Error " + error_message);
 }
 

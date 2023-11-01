@@ -3,13 +3,29 @@
 DbController::DbController(QObject *parent)
     : QObject{parent}
 {
-    my_db = QSqlDatabase::addDatabase(this->DATABASE_NAME);
-    database = &my_db;
+    database = new QSqlDatabase(QSqlDatabase::addDatabase("QPSQL"));
+    if (database != nullptr)
+    {
+        database->setHostName(this->HOSTNAME);
+        database->setDatabaseName(this->DATABASE_NAME);
+        database->setUserName(this->USERNAME);
+        database->setPassword(this->PASSWORD);
+        database->setPort(5432);
+        this->my_db = *database;
+
+    }else{
+        qDebug() << "Error to connect with database server";
+    }
+
 }
 
 bool DbController::open()
 {
    bool result = false;
+   if (database == nullptr)
+   {
+       return result;
+   }
    if (!this->database->isOpen()){
        result = this->database->open();
    }else{
@@ -26,14 +42,20 @@ void DbController::close()
     }
 }
 
-bool DbController::insert_pdv(const QString &filename, const QString &label)
+bool DbController::insert_pdv(const QJsonArray *data, const QString &label)
 {
     bool result = false;
-    const QString query_prepare = "INSERT INTO vpd (filename, label) VALUES (:filename, :label)";
-    QSqlQuery my_query;
+    QJsonDocument doc;
+    doc.setArray(*data);
+    QString dataToString(doc.toJson());
+    qDebug() << "Cyclic: " << dataToString;
+
+//    const QString query_prepare = "INSERT INTO teste(name) VALUES (:json_data)";
+    const QString query_prepare = "INSERT INTO cyclic(json_data, text_label) VALUES (:json_data, :text_label)";
+    QSqlQuery my_query(this->my_db);
     my_query.prepare(query_prepare);
-    my_query.bindValue(":filename", filename);
-    my_query.bindValue(":label", label);
+    my_query.bindValue(":json_data", dataToString);
+    my_query.bindValue(":text_label", label);
 
     if (this->open())
     {
@@ -47,14 +69,20 @@ bool DbController::insert_pdv(const QString &filename, const QString &label)
     return result;
 }
 
-bool DbController::insert_cyclic(const QString &filename, const QString &label)
+bool DbController::insert_cyclic(const QJsonArray *data, const QString &label)
 {
     bool result = false;
-    const QString query_prepare = "INSERT INTO cyclic (filename, label) VALUES (:filename, :label)";
-    QSqlQuery my_query;
+    QJsonDocument doc;
+    doc.setArray(*data);
+    QString dataToString(doc.toJson());
+    qDebug() << "Cyclic: " << dataToString;
+
+//    const QString query_prepare = "INSERT INTO teste(name) VALUES (:json_data)";
+    const QString query_prepare = "INSERT INTO cyclic(json_data, text_label) VALUES (:json_data, :text_label)";
+    QSqlQuery my_query(this->my_db);
     my_query.prepare(query_prepare);
-    my_query.bindValue(":filename", filename);
-    my_query.bindValue(":label", label);
+    my_query.bindValue(":json_data", dataToString);
+    my_query.bindValue(":text_label", label);
 
     if (this->open())
     {

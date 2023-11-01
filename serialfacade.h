@@ -24,6 +24,7 @@ public:
     bool sendTestConnectionRequest();
     bool sendChronoAmperometryRequest();
     QByteArray getMeasurements();
+    QJsonArray* getMeasurements1();
     void clearMeasurements();
     void saveFile(const char *filePath);
     void saveJsonFile(const char *filePath);
@@ -32,6 +33,7 @@ signals:
     void on_pico_status_received(Protocol::STATUS status);
     void jsonline_received(QString line);
     void fileNotSavedError(void);
+    void fileSavedSuccess(QString filename);
 
 private:
     SerialPortReader *myReader = nullptr;
@@ -49,6 +51,7 @@ private slots:
     void handleDataReceived(QString data);
     void handleDataWritten(QSerialPort::SerialPortError error);
     void handleFileNotSaved();
+    void handleFileSaved(QString filename);
 };
 
 #endif // SERIALFACADE_H

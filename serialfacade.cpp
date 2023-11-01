@@ -67,7 +67,7 @@ bool SerialFacade::sendPulseDifferentialRequest()
 {
     {
         if (myConnection->getPortStatus()) {
-//            myWriter->write(protocol.getPacket(Dpv, params));
+            myWriter->write(protocol.PDV);
             return true;
         }
         return false;
@@ -98,6 +98,11 @@ QByteArray SerialFacade::getMeasurements()
     return this->jsonConverter->getMeasurements();
 }
 
+QJsonArray* SerialFacade::getMeasurements1()
+{
+    return this->jsonConverter->getMeasurements1();
+}
+
 void SerialFacade::clearMeasurements()
 {
     this->jsonConverter->clearMeasurements();
@@ -118,6 +123,7 @@ void SerialFacade::setupConnections()
     connect(myReader, &SerialPortReader::handleDataReceived, this, &SerialFacade::handleDataReceived);
     connect(myWriter, &SerialPortWriter::bytesSentStatus, this, &SerialFacade::handleDataWritten);
     connect(jsonConverter, &JsonToCsvConverter::fileNotSavedError, this, &SerialFacade::handleFileNotSaved);
+    connect(jsonConverter, &JsonToCsvConverter::fileSavedSuccessifully, this, &SerialFacade::handleFileSaved);
 }
 
 void SerialFacade::handleDataReceived(QString data)
@@ -176,4 +182,9 @@ void SerialFacade::handleDataWritten(QSerialPort::SerialPortError error)
 void SerialFacade::handleFileNotSaved()
 {
     emit fileNotSavedError();
+}
+
+void SerialFacade::handleFileSaved(QString filename)
+{
+    emit fileSavedSuccess(filename);
 }
