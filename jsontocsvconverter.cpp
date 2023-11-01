@@ -130,6 +130,11 @@ QByteArray JsonToCsvConverter::getMeasurements()
     return byteData;
 }
 
+QJsonArray *JsonToCsvConverter::getMeasurements1()
+{
+    return this->measurements;
+}
+
 QByteArray JsonToCsvConverter::convertToByteArray(const QJsonArray *myJson)
 {
     // Convert JSON data to QByteArray
@@ -143,17 +148,20 @@ void JsonToCsvConverter::saveJsonFile(const char *filePath)
 {
     char filename[100];
     QString date = QString::number(QDateTime::currentMSecsSinceEpoch());
+
     if (filePath != nullptr)
     {
         sprintf(filename, "%s/%s_%s_json.csv", filePath, fileName, date.toStdString().c_str());
         QFile myFile(filename);
         bool isOpen  = myFile.open(QIODevice::WriteOnly | QIODevice::Text);
+
         if (isOpen)
         {
             QTextStream stream(&myFile);
             stream << this->convertToByteArray(measurements).constData();
             myFile.flush();
             myFile.close();
+            emit fileSavedSuccessifully(QString(filename));
         }else{
             emit fileNotSavedError();
         }

@@ -11,7 +11,7 @@ public:
     explicit DbFacade(QObject *parent = nullptr);
     bool open();
     void close();
-    void insert_values(const QString &filename, const QString &label, const bool vpd);
+    void insert_values(const QJsonArray *data, const QString &label, const bool vpd);
 
 private:
     DbController *controller = nullptr;
