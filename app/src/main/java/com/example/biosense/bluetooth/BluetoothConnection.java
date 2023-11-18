@@ -1,0 +1,152 @@
+package com.example.biosense.bluetooth;
+
+import android.Manifest;
+import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothSocket;
+import android.content.Context;
+import android.content.pm.PackageManager;
+import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
+
+import androidx.core.app.ActivityCompat;
+
+import com.example.biosense.R;
+import com.example.biosense.utils.MensagensToast;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+
+
+public class BluetoothConnection extends Bluetooth implements Runnable {
+
+	public static Method M;
+	public static String CONEXAO = "createRfcommSocket";
+	public static final String DADOS = "DADOS";
+	private BluetoothSocket socket;
+	private InputStream inputData;
+	private OutputStream outputData;
+	private Handler handler;
+	private static final long TIME = 500;
+	private boolean stop = false;
+	private Context context;
+
+	public BluetoothConnection(Context context, Handler handler) {
+		super(context);
+		this.context = context;
+		this.handler = handler;
+	}
+
+	public void eneableConnection() {
+		this.stop = true;
+	}
+
+	@Override
+	public void run() {
+
+		while (this.stop) {
+
+			try {
+				int byteDisponivel = inputData.available();
+				byte dados[] = new byte[byteDisponivel];
+				inputData.read(dados, 0, byteDisponivel);
+				//Testa o tamanho dos dados recebidos
+				if (dados.length > 0) {
+					sendHandleMessage(dados);
+				}
+				Thread.sleep(BluetoothConnection.TIME);
+			} catch (IOException e) {
+				MensagensToast.showMessage(context, com.example.biosense.R.string.bluetooth_connection_erro_conexao);
+
+			} catch (InterruptedException e) {
+				MensagensToast.showMessage(context, R.string.bluetooth_connection_recepcao_interrompida);
+			}
+
+		}
+	}
+
+	private void sendHandleMessage(byte[] dados) {
+
+		Message mensagem = new Message();
+		Bundle bundle = new Bundle();
+		char data[] = this.byteToChar(dados);
+		bundle.putCharArray(DADOS, data);
+		mensagem.setData(bundle);
+		handler.sendMessage(mensagem);
+
+	}
+
+	private char[] byteToChar(byte[] bytes) {
+		short dados[] = new short[bytes.length];
+		char dadoc[] = new char[bytes.length];
+		for (int i = 0; i < bytes.length; i++) {
+
+			if (bytes[i] <= 127 && bytes[i] >= 0) {
+				dados[i] = (short) bytes[i];
+
+			} else {
+				dados[i] = (short) ((short) bytes[i] + 256);
+			}
+			dadoc[i] = (char) dados[i];
+		}
+		return dadoc;
+	}
+
+	public void sendData(byte[] data) throws BluetoothException {
+		//Testa se h� conex�o
+		if (this.isConexaoEneable()) {
+			try {
+				outputData.write(data);
+			} catch (IOException e) {
+				String menssagem = context.getString(R.string.bluetooth_connection_envio_dados);
+				throw new BluetoothException(menssagem);
+			}
+		} else {
+			String menssagem = context.getString(R.string.bluetooth_connection_erro_conexao);
+			throw new BluetoothException(menssagem);
+		}
+	}
+
+	public boolean isConexaoEneable() {
+		return socket != null && socket.isConnected();
+	}
+
+	//Finaliza a conex�o bluetooth
+	public void stopConnection() throws BluetoothException {
+		this.stop = false;
+		//Tenta fechar o socket
+		try {
+			if (this.isConexaoEneable()) {
+				inputData.close();
+				outputData.close();
+				socket.close();
+			}
+		} catch (IOException e) {
+			String mensagem = context.getString(R.string.bluetooth_connection_erro_fechar);
+			throw new BluetoothException(mensagem);
+		}
+	}
+
+	public void conectaBluetooth(BluetoothDevice device) throws NoSuchMethodException, IllegalAccessException, IllegalArgumentException,
+			InvocationTargetException, IOException {
+		//Testa se o dispositivo para conex�o � nulo
+		if (device != null) {
+			M = device.getClass().getMethod(BluetoothConnection.CONEXAO, new Class[]{int.class});
+			socket = (BluetoothSocket) M.invoke(device, Integer.valueOf(1));
+			//Testa se o Socket � nulo
+			if (socket != null) {
+				if (ActivityCompat.checkSelfPermission(this.context, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
+					socket.connect();
+					inputData = socket.getInputStream();
+					outputData = socket.getOutputStream();
+					MensagensToast.showMessage(this.context, "Bluetooth Connection Stablished");
+				}
+			}
+		}
+
+	}
+
+}
