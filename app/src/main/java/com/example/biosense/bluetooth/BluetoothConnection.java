@@ -8,10 +8,12 @@ import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.util.Log;
 
 import androidx.core.app.ActivityCompat;
 
 import com.example.biosense.R;
+import com.example.biosense.json.JsonBaseHelper;
 import com.example.biosense.utils.MensagensToast;
 
 import java.io.IOException;
@@ -33,11 +35,13 @@ public class BluetoothConnection extends Bluetooth implements Runnable {
 	private static final long TIME = 500;
 	private boolean stop = false;
 	private Context context;
+	private JsonBaseHelper jsonHelper;
 
 	public BluetoothConnection(Context context, Handler handler) {
 		super(context);
 		this.context = context;
 		this.handler = handler;
+		this.jsonHelper = new JsonBaseHelper();
 	}
 
 	public void eneableConnection() {
@@ -73,10 +77,16 @@ public class BluetoothConnection extends Bluetooth implements Runnable {
 		Message mensagem = new Message();
 		Bundle bundle = new Bundle();
 		char data[] = this.byteToChar(dados);
-		bundle.putCharArray(DADOS, data);
-		mensagem.setData(bundle);
-		handler.sendMessage(mensagem);
-
+		String s = new String(data);
+		Log.d("RECEIVED: ", s);
+		// Test if it is a JSON Packet
+		if (s.contains("{") && s.contains("}")){
+			this.jsonHelper.addJsonLine(s);
+		}else{
+			bundle.putCharArray(DADOS, data);
+			mensagem.setData(bundle);
+			handler.sendMessage(mensagem);
+		}
 	}
 
 	private char[] byteToChar(byte[] bytes) {
@@ -130,18 +140,39 @@ public class BluetoothConnection extends Bluetooth implements Runnable {
 		}
 	}
 
-	public void conectaBluetooth(BluetoothDevice device) throws NoSuchMethodException, IllegalAccessException, IllegalArgumentException,
-			InvocationTargetException, IOException {
+	public void conectaBluetooth(BluetoothDevice device) throws BluetoothException {
 		//Testa se o dispositivo para conex�o � nulo
 		if (device != null) {
-			M = device.getClass().getMethod(BluetoothConnection.CONEXAO, new Class[]{int.class});
-			socket = (BluetoothSocket) M.invoke(device, Integer.valueOf(1));
+			try {
+				M = device.getClass().getMethod(BluetoothConnection.CONEXAO, new Class[]{int.class});
+			} catch (NoSuchMethodException e) {
+				throw new BluetoothException("Method does not exist");
+			}
+			try {
+				socket = (BluetoothSocket) M.invoke(device, Integer.valueOf(1));
+			} catch (IllegalAccessException e) {
+				throw new BluetoothException("Socket could not be initialized");
+			} catch (InvocationTargetException e) {
+				throw new BluetoothException("Socket could not be initialized");
+			}
 			//Testa se o Socket � nulo
 			if (socket != null) {
 				if (ActivityCompat.checkSelfPermission(this.context, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
-					socket.connect();
-					inputData = socket.getInputStream();
-					outputData = socket.getOutputStream();
+					try {
+						socket.connect();
+					} catch (IOException e) {
+						throw new BluetoothException("Connection error");
+					}
+					try {
+						inputData = socket.getInputStream();
+					} catch (IOException e) {
+						throw new BluetoothException("Input stream error");
+					}
+					try {
+						outputData = socket.getOutputStream();
+					} catch (IOException e) {
+						throw new BluetoothException("Outputstream error");
+					}
 					MensagensToast.showMessage(this.context, "Bluetooth Connection Stablished");
 				}
 			}

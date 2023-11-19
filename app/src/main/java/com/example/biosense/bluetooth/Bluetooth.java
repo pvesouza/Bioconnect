@@ -67,29 +67,24 @@ public class Bluetooth {
 	public BluetoothDevice getDevice(String nome, String macAddress) {
 
 		if (ActivityCompat.checkSelfPermission(this.btContext, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
-			// TODO: Consider calling
-			//    ActivityCompat#requestPermissions
-			// here to request the missing permissions, and then overriding
-			//   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-			//                                          int[] grantResults)
-			// to handle the case where the user grants the permission. See the documentation
-			// for ActivityCompat#requestPermissions for more details.
-			return null;
-		}
-		Set<BluetoothDevice> set = this.adaptadorDispositivo.getBondedDevices();
-		BluetoothDevice bt = null;
-		
-		if (set.size() > 0){
-	
-			for (BluetoothDevice bluetoothDevice : set) {
-				
-				if (bluetoothDevice.getAddress().equals(macAddress) && bluetoothDevice.getName().equals(nome)){
-					bt = bluetoothDevice;
+			Set<BluetoothDevice> set = this.adaptadorDispositivo.getBondedDevices();
+			BluetoothDevice bt = null;
+
+			if (set.size() > 0){
+
+				for (BluetoothDevice bluetoothDevice : set) {
+
+					if (bluetoothDevice.getAddress().equals(macAddress) && bluetoothDevice.getName().equals(nome)){
+						bt = bluetoothDevice;
+					}
 				}
 			}
+
+			return bt;
 		}
-		
-		return bt;
+
+		return null;
+
 	}
 	
 	

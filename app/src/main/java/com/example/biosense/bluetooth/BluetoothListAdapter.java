@@ -3,7 +3,9 @@ package com.example.biosense.bluetooth;
 import android.Manifest;
 import android.bluetooth.BluetoothDevice;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,6 +16,7 @@ import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.biosense.Activity_Exam;
 import com.example.biosense.R;
 
 import java.util.List;
@@ -39,10 +42,32 @@ public class BluetoothListAdapter extends RecyclerView.Adapter<BluetoothListAdap
 
 	@Override
 	public void onBindViewHolder(@NonNull BluetoothListAdapter.ViewHolder holder, int position) {
+		String btName = "";
+		String btMac = "";
 		if (ActivityCompat.checkSelfPermission(this.context, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
-			holder.getTextViewName().setText(this.listaDeBluetooth.get(position).getName());
-			holder.getTextView_Mac().setText(this.listaDeBluetooth.get(position).getAddress());
+			btName = this.listaDeBluetooth.get(position).getName();
+			btMac = this.listaDeBluetooth.get(position).getAddress();
+			holder.getTextViewName().setText(btName);
+			holder.getTextView_Mac().setText(btMac);
 		}
+
+		View v = holder.itemView;
+		String finalBtMac = btMac;
+		String finalBtName = btName;
+		v.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View view) {
+				// Starts the exam activity by clicking on item list
+				if (!(finalBtMac.isEmpty() && finalBtName.isEmpty())){
+					Bundle data = new Bundle();
+					data.putString("BT_NAME", finalBtName);
+					data.putString("BT_MAC", finalBtMac);
+					Intent it = new Intent(context, Activity_Exam.class);
+					it.putExtras(data);
+					context.startActivity(it);
+				}
+			}
+		});
 
 	}
 
@@ -63,7 +88,6 @@ public class BluetoothListAdapter extends RecyclerView.Adapter<BluetoothListAdap
 		public ViewHolder(View view) {
 			super(view);
 			// Define click listener for the ViewHolder's View
-
 			this.textView_Name = (TextView) view.findViewById(R.id.linha_tabela_nome);
 			this.textView_Mac = (TextView) view.findViewById(R.id.linha_tabela_mac);
 		}
