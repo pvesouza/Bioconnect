@@ -75,14 +75,14 @@ QString JsonToCsvConverter::convertJsonToCSV(QString stringJson)
 //    return isOpen;
 //}
 
-void JsonToCsvConverter::writecsv(const char *filePath)
+void JsonToCsvConverter::writecsv(const char *filePath, const char *label)
 {
 
     char filename[100];
     QString date = QString::number(QDateTime::currentMSecsSinceEpoch());
     if (filePath != nullptr)
     {
-        sprintf(filename, "%s/%s_%s.csv", filePath, fileName, date.toStdString().c_str());
+        sprintf(filename, "%s/%s_%s_%s.csv", filePath, fileName, label, date.toStdString().c_str());
         qDebug() << filename;
         QFile myFile(filename);
         bool isOpen  = myFile.open(QIODevice::WriteOnly | QIODevice::Text);
@@ -144,14 +144,14 @@ QByteArray JsonToCsvConverter::convertToByteArray(const QJsonArray *myJson)
     return postData;
 }
 
-void JsonToCsvConverter::saveJsonFile(const char *filePath)
+void JsonToCsvConverter::saveJsonFile(const char *filePath, const char *label)
 {
     char filename[100];
     QString date = QString::number(QDateTime::currentMSecsSinceEpoch());
 
     if (filePath != nullptr)
     {
-        sprintf(filename, "%s/%s_%s_json.csv", filePath, fileName, date.toStdString().c_str());
+        sprintf(filename, "%s/%s_%s_%s_json.csv", filePath, fileName, label, date.toStdString().c_str());
         QFile myFile(filename);
         bool isOpen  = myFile.open(QIODevice::WriteOnly | QIODevice::Text);
 

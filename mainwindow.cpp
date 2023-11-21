@@ -68,7 +68,7 @@ void MainWindow::on_pushButton_ListPorts_clicked()
 
 }
 
-
+// Button to connect to device on USB
 void MainWindow::on_pushButton_connect_clicked()
 {
     QString portName =  ui->comboBox_ports->currentText();
@@ -79,7 +79,7 @@ void MainWindow::on_pushButton_connect_clicked()
     }
 }
 
-
+// Button to disconnect from device on USB
 void MainWindow::on_pushButton_disconnect_clicked()
 {
     mySerialFacade->closePort();
@@ -88,9 +88,17 @@ void MainWindow::on_pushButton_disconnect_clicked()
     ui->pushButton_disconnect->setEnabled(false);
 }
 
-
+// Button to Run an examination and send data to EMSTAT pico
 void MainWindow::on_pushButton_run_clicked()
 {
+    QString label = this->ui->lineEdit_label->text();
+    QString path = this->ui->lineEdit_path->text();
+
+    if (label.isEmpty() && path.isEmpty())
+    {
+        this->show_user_message("Please, fill label and path fields");
+        return;
+    }
     if (this->ui->comboBox_technique->currentText().contains("Cyclic"))
     {
        mySerialFacade->sendVoltametryRequest();
@@ -98,6 +106,7 @@ void MainWindow::on_pushButton_run_clicked()
        max_current = 0.0000001 * 1000000;
        min_current = -0.0000001 * 1000000;
        axisY->setRange(min_current, max_current);
+       ui->pushButton_analyze->setEnabled(false);
     }else if (this->ui->comboBox_technique->currentText().contains("PDV"))
     {
         mySerialFacade->sendPulseDifferentialRequest();
@@ -105,10 +114,10 @@ void MainWindow::on_pushButton_run_clicked()
         max_current = 0.0000001 * 1000000;
         min_current = -0.0000001 * 1000000;
         axisY->setRange(min_current, max_current);
+        ui->pushButton_analyze->setEnabled(false);
     }else{
         qDebug() << "Nothing selected";
     }
-
 }
 
 
@@ -155,7 +164,10 @@ void MainWindow::pico_status_received(Protocol::STATUS status)
 
         if (filepath.length() > 0)
         {
-            mySerialFacade->saveFile(filepath.toUtf8().constData());
+            QString label = this->ui->lineEdit_label->text();
+            mySerialFacade->saveFile(filepath.toUtf8().constData(), label.toUpper().toUtf8().constData());
+        }else{
+            this->show_user_message("Filepath not filled, so the file were not saved");
         }
 
         break;
@@ -292,7 +304,13 @@ void MainWindow::init_chart()
     }
 
 //    this->resize(400, 300);
-//    this->show();
+    //    this->show();
+}
+
+// Shows a message into a message box
+void MainWindow::show_user_message(QString message)
+{
+    QMessageBox::information(nullptr, "Info", message);
 }
 
 
@@ -300,7 +318,13 @@ void MainWindow::on_pushButton_analyze_clicked()
 {
 
 //    QJsonArray *byte_measures = mySerialFacade->getMeasurements1();
-    mySerialFacade->saveJsonFile(ui->lineEdit_path->text().toUtf8().constData());
+    QString label = this->ui->lineEdit_label->text();
+    if (label.isEmpty()){
+        this->show_user_message("Label is empty");
+    }else {
+         mySerialFacade->saveJsonFile(ui->lineEdit_path->text().toUtf8().constData(), label.toUpper().toUtf8().constData());
+    }
+
 //    myNetworkApi->sendMeasurements(byte_measures);
 }
 

@@ -26,8 +26,8 @@ public:
     QByteArray getMeasurements();
     QJsonArray* getMeasurements1();
     void clearMeasurements();
-    void saveFile(const char *filePath);
-    void saveJsonFile(const char *filePath);
+    void saveFile(const char *filePath, const char *label);
+    void saveJsonFile(const char *filePath, const char *label);
 
 signals:
     void on_pico_status_received(Protocol::STATUS status);
