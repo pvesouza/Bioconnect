@@ -184,7 +184,7 @@ void MainWindow::jsonline_received(QString line)
      currQueue->enqueue(current);
      potQueue->enqueue(potential);
      plot = true;
-     timer->start(20);
+     timer->start(10);
 }
 
 void MainWindow::handle_chart_update()
@@ -220,7 +220,7 @@ void MainWindow::handle_chart_update()
         {
             time_passed = 0;
             // Update series
-            axisY->setRange(min_current, max_current);
+            axisY->setRange(min_current - 10, max_current + 10);
             series->append(potential, current);
 
             // Ensure the chart updates
@@ -285,6 +285,7 @@ void MainWindow::init_chart()
     axisY = new QtCharts::QValueAxis();
     axisX->setTitleText("Potential (V)");
     axisY->setTitleText("Current (uA)");
+    axisY->setTickCount(11); // Change this value to control the number of divisions
     axisX->setRange(-1.0, 1.0);
     chart->addAxis(axisX, Qt::AlignBottom);
     chart->addAxis(axisY, Qt::AlignLeft);
