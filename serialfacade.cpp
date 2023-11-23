@@ -108,14 +108,14 @@ void SerialFacade::clearMeasurements()
     this->jsonConverter->clearMeasurements();
 }
 
-void SerialFacade::saveFile(const char *filePath)
+void SerialFacade::saveFile(const char *filePath, const char *label)
 {
-    jsonConverter->writecsv(filePath);
+    jsonConverter->writecsv(filePath, label);
 }
 
-void SerialFacade::saveJsonFile(const char *filePath)
+void SerialFacade::saveJsonFile(const char *filePath, const char *label)
 {
-    jsonConverter->saveJsonFile(filePath);
+    jsonConverter->saveJsonFile(filePath, label);
 }
 
 void SerialFacade::setupConnections()

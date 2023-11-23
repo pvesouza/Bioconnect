@@ -206,7 +206,7 @@
      <item>
       <widget class="QPushButton" name="pushButton_analyze">
        <property name="text">
-        <string>Analyze</string>
+        <string>Save Json</string>
        </property>
       </widget>
      </item>

@@ -18,12 +18,12 @@ class JsonToCsvConverter : public QObject
 public:
     JsonToCsvConverter(QObject *parent = nullptr);
     QString convertJsonToCSV(QString stringJson);
-    void writecsv(const char *filePath);
+    void writecsv(const char *filePath, const char *label);
     void addLine(QString line);
     QByteArray getMeasurements();
     QJsonArray *getMeasurements1();
     QByteArray convertToByteArray(const QJsonArray *myJson);
-    void saveJsonFile(const char *filePath);
+    void saveJsonFile(const char *filePath, const char *label);
     void clearMeasurements();
 
 signals:
