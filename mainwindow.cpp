@@ -94,6 +94,12 @@ void MainWindow::on_pushButton_run_clicked()
     QString label = this->ui->lineEdit_label->text();
     QString path = this->ui->lineEdit_path->text();
 
+    if (number_of_runs != 0){
+        add_series();
+    }
+
+    number_of_runs += 1;
+
     if (label.isEmpty() && path.isEmpty())
     {
         this->show_user_message("Please, fill label and path fields");
@@ -102,7 +108,6 @@ void MainWindow::on_pushButton_run_clicked()
     if (this->ui->comboBox_technique->currentText().contains("Cyclic"))
     {
        mySerialFacade->sendVoltametryRequest();
-       series->clear();
        max_current = 0.0000001 * 1000000;
        min_current = -0.0000001 * 1000000;
        axisY->setRange(min_current, max_current);
@@ -110,7 +115,6 @@ void MainWindow::on_pushButton_run_clicked()
     }else if (this->ui->comboBox_technique->currentText().contains("PDV"))
     {
         mySerialFacade->sendPulseDifferentialRequest();
-        series->clear();
         max_current = 0.0000001 * 1000000;
         min_current = -0.0000001 * 1000000;
         axisY->setRange(min_current, max_current);
@@ -308,10 +312,44 @@ void MainWindow::init_chart()
     //    this->show();
 }
 
+
+
 // Shows a message into a message box
 void MainWindow::show_user_message(QString message)
 {
     QMessageBox::information(nullptr, "Info", message);
+}
+
+void MainWindow::add_series()
+{
+    // Create a line series for the graph
+    series = new QtCharts::QLineSeries();
+    if (chart != nullptr) {
+        // Set the series color
+        QPen pen = series->pen();
+        // Gerando a cor da serie
+
+        int randomR = QRandomGenerator::global()->bounded(0, 173);
+        int randomG = QRandomGenerator::global()->bounded(0, 205);
+        int randomB = QRandomGenerator::global()->bounded(100, 255);
+
+        QColor brushColor = QColor(randomR ,randomG, randomB);
+
+       //QBrush brush = QBrush();
+        //brush.setColor(brushColor);
+       // brush.setStyle(Qt::SolidPattern)
+       // pen.setBrush(brush);
+//        series->setColor(brushColor);
+        pen.setWidth(2);
+        pen.setColor(brushColor);
+        series->setPen(pen);
+        chart->addSeries(series);
+        qDebug() << randomB << randomG << randomR;
+    }else{
+        chart = new QtCharts::QChart();
+    }
+    series->attachAxis(axisX);
+    series->attachAxis(axisY);
 }
 
 
