@@ -10,6 +10,8 @@
 #include <QtCharts/QLineSeries>
 #include <QtCharts/QValueAxis>
 #include <QFileDialog>
+#include <QMessageBox>
+#include <QRandomGenerator>
 
 #include "serialfacade.h"
 #include "serialmanager.h"
@@ -64,6 +66,8 @@ private:
     ApiFacade *myNetworkApi = nullptr;
     DbFacade *myDbFacade = nullptr;
     int time_passed = 0;
+    int number_of_runs = 0;
+//    bool eneable_save_file = false;
 
     QStringList listOfAnalysis = {
       "Cyclic",
@@ -84,8 +88,11 @@ private:
     QQueue<double> *currQueue = nullptr;
 
 
+
     bool plot = false;
     void init_chart();
+    void show_user_message(QString message);
+    void add_series();
 
 };
 #endif // MAINWINDOW_H
