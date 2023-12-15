@@ -25,7 +25,7 @@
             android:exported="false" />
         <activity
             android:name=".List_Bluetooth_Devices"
-            android:exported="false"
+            android:exported="true"
             android:label="@string/title_activity_list_bluetooth"
             android:theme="@style/Theme.Biosense" />
         <activity

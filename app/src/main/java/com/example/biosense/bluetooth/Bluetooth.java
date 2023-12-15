@@ -25,6 +25,10 @@ public class Bluetooth {
 		this.btContext = context;
 	}
 
+	public boolean isEneable() {
+		return this.adaptadorDispositivo.isEnabled();
+	}
+
 	public BluetoothDevice getMyDevice() {
 		return myDevice;
 	}
@@ -45,6 +49,9 @@ public class Bluetooth {
 	public List<BluetoothDevice> getPairedDevices() {
 
 		if (ActivityCompat.checkSelfPermission(this.btContext, Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED) {
+			if (!this.adaptadorDispositivo.isEnabled()){
+				this.adaptadorDispositivo.enable();
+			}
 			Set<BluetoothDevice> set = this.adaptadorDispositivo.getBondedDevices();
 			List<BluetoothDevice> lista = new ArrayList<BluetoothDevice>();
 

@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -30,8 +31,8 @@ public class BluetoothListAdapter extends RecyclerView.Adapter<BluetoothListAdap
 	public BluetoothListAdapter(Context context, List<BluetoothDevice> lista) {
 		this.context = context;
 		this.listaDeBluetooth = lista;
+		Log.d("Created", "Bluetooth Adapter");
 	}
-
 
 	@NonNull
 	@Override
@@ -44,11 +45,15 @@ public class BluetoothListAdapter extends RecyclerView.Adapter<BluetoothListAdap
 	public void onBindViewHolder(@NonNull BluetoothListAdapter.ViewHolder holder, int position) {
 		String btName = "";
 		String btMac = "";
-		if (ActivityCompat.checkSelfPermission(this.context, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
+
+		if (ActivityCompat.checkSelfPermission(this.context, Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED) {
 			btName = this.listaDeBluetooth.get(position).getName();
 			btMac = this.listaDeBluetooth.get(position).getAddress();
 			holder.getTextViewName().setText(btName);
 			holder.getTextView_Mac().setText(btMac);
+			Log.d("BindView", btName);
+		}else{
+			Log.d("BindView", "Permission Error");
 		}
 
 		View v = holder.itemView;
