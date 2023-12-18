@@ -21,8 +21,11 @@
         android:theme="@style/Theme.Biosense"
         tools:targetApi="31">
         <activity
-            android:name=".Activity_Exam"
+            android:name=".ControllerActivity"
             android:exported="false" />
+        <activity
+            android:name=".Activity_Exam"
+            android:exported="true" />
         <activity
             android:name=".List_Bluetooth_Devices"
             android:exported="true"

@@ -19,13 +19,17 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.biosense.Activity_Exam;
 import com.example.biosense.R;
+import com.example.biosense.utils.MensagensToast;
 
 import java.util.List;
 
-public class BluetoothListAdapter extends RecyclerView.Adapter<BluetoothListAdapter.ViewHolder> {
+public class BluetoothListAdapter extends RecyclerView.Adapter<BluetoothListAdapter.MyViewHolder> {
 
-	private List<BluetoothDevice> listaDeBluetooth;
-	private Context context;
+	private final List<BluetoothDevice> listaDeBluetooth;
+	private final Context context;
+	private String deviceName;
+	private String deviceMac;
+	private MyOnclickListener myClickListener;
 
 	//Construtor
 	public BluetoothListAdapter(Context context, List<BluetoothDevice> lista) {
@@ -36,44 +40,33 @@ public class BluetoothListAdapter extends RecyclerView.Adapter<BluetoothListAdap
 
 	@NonNull
 	@Override
-	public BluetoothListAdapter.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-		View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.linha_lista_bluetooth, parent, false);
-		return new ViewHolder(view);
+	public BluetoothListAdapter.MyViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+		View view = LayoutInflater.from(parent.getContext())
+				.inflate(R.layout.linha_lista_bluetooth, parent, false);
+		return new MyViewHolder(view);
 	}
 
 	@Override
-	public void onBindViewHolder(@NonNull BluetoothListAdapter.ViewHolder holder, int position) {
-		String btName = "";
-		String btMac = "";
+	public void onBindViewHolder(@NonNull BluetoothListAdapter.MyViewHolder holder, int position) {
 
-		if (ActivityCompat.checkSelfPermission(this.context, Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED) {
-			btName = this.listaDeBluetooth.get(position).getName();
-			btMac = this.listaDeBluetooth.get(position).getAddress();
-			holder.getTextViewName().setText(btName);
-			holder.getTextView_Mac().setText(btMac);
-			Log.d("BindView", btName);
-		}else{
-			Log.d("BindView", "Permission Error");
+
+		if (ActivityCompat.checkSelfPermission(this.context, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
+			MensagensToast.showMessage(this.context, "Permission not granted");
+			return;
 		}
 
-		View v = holder.itemView;
-		String finalBtMac = btMac;
-		String finalBtName = btName;
-		v.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View view) {
-				// Starts the exam activity by clicking on item list
-				if (!(finalBtMac.isEmpty() && finalBtName.isEmpty())){
-					Bundle data = new Bundle();
-					data.putString("BT_NAME", finalBtName);
-					data.putString("BT_MAC", finalBtMac);
-					Intent it = new Intent(context, Activity_Exam.class);
-					it.putExtras(data);
-					context.startActivity(it);
-				}
+		final String btName = this.listaDeBluetooth.get(position).getName();
+		final String btMac = this.listaDeBluetooth.get(position).getAddress();
+		holder.getTextViewName().setText(btName);
+		holder.getTextView_Mac().setText(btMac);
+
+		// Binds an on Click customized an OnClicklistener
+		holder.itemView.setOnClickListener(v -> {
+			if (myClickListener != null) {
+				myClickListener.onClick(btName, btMac);
 			}
 		});
-
+		Log.d("BindView", btName);
 	}
 
 	@Override
@@ -83,14 +76,23 @@ public class BluetoothListAdapter extends RecyclerView.Adapter<BluetoothListAdap
 
 	@Override
 	public int getItemCount() {
-		return 0;
+		return this.listaDeBluetooth.size();
 	}
 
-	public static class ViewHolder extends RecyclerView.ViewHolder {
+	public void setOnClickListener(MyOnclickListener onclickListener){
+		this.myClickListener = onclickListener;
+	}
+
+	// Customized OnClickListener
+	public interface MyOnclickListener {
+		void onClick(String btName, String btAdd);
+	}
+
+	public static class MyViewHolder extends RecyclerView.ViewHolder {
 		private final TextView textView_Name;
 		private final TextView textView_Mac;
 
-		public ViewHolder(View view) {
+		public MyViewHolder(View view) {
 			super(view);
 			// Define click listener for the ViewHolder's View
 			this.textView_Name = (TextView) view.findViewById(R.id.linha_tabela_nome);
