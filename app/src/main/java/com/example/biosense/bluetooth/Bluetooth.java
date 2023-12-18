@@ -49,6 +49,7 @@ public class Bluetooth {
 	public List<BluetoothDevice> getPairedDevices() {
 
 		if (ActivityCompat.checkSelfPermission(this.btContext, Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED) {
+
 			if (!this.adaptadorDispositivo.isEnabled()){
 				this.adaptadorDispositivo.enable();
 			}
@@ -73,7 +74,7 @@ public class Bluetooth {
 
 	public BluetoothDevice getDevice(String nome, String macAddress) {
 
-		if (ActivityCompat.checkSelfPermission(this.btContext, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
+		if (ActivityCompat.checkSelfPermission(this.btContext, Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED) {
 			Set<BluetoothDevice> set = this.adaptadorDispositivo.getBondedDevices();
 			BluetoothDevice bt = null;
 
@@ -89,9 +90,7 @@ public class Bluetooth {
 
 			return bt;
 		}
-
 		return null;
-
 	}
 	
 	

@@ -135,7 +135,7 @@ public class Activity_Exam extends AppCompatActivity {
     }
 
     private void sendCommand(String command) {
-        if (connection.isConexaoEneable()) {
+        if (connection.isConnectionStablished()) {
             try {
                 connection.sendData(command.getBytes(StandardCharsets.UTF_8));
             } catch (BluetoothException e) {

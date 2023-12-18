@@ -95,8 +95,8 @@ public class List_Bluetooth_Devices extends AppCompatActivity {
                     Intent request = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
                     resultActivity.launch(request);
                 }
-            }else {
-                updateListOfPairedDevices();
+            }else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                requestResult.launch(Manifest.permission.BLUETOOTH_CONNECT);
             }
 
         }else{
