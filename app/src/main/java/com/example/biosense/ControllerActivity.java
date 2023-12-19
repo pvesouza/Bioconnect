@@ -7,7 +7,10 @@ import android.bluetooth.BluetoothDevice;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.HandlerThread;
 import android.util.Log;
+import android.view.View;
+import android.widget.Button;
 import android.widget.TextView;
 import android.widget.ToggleButton;
 
@@ -19,15 +22,16 @@ import com.example.biosense.utils.MensagensToast;
 
 public class ControllerActivity extends AppCompatActivity {
 
-    private static final String TAG = "Controller";
-    private boolean isBluetoothKnown;
+    protected static final String TAG = "Controller";
+    protected boolean isBluetoothKnown;
     private TextView textView_btName, textView_btAdd;
-    private ToggleButton button_connect;
-    private BluetoothConnection myConnection;
+    protected ToggleButton button_connect;
+    protected Button button_testPico;
+    protected BluetoothConnection myConnection;
 
-    private BluetoothDevice deviceToConnect;
+    protected BluetoothDevice deviceToConnect;
 
-    private Handler myHandler;
+    protected Handler myHandler;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,10 +40,27 @@ public class ControllerActivity extends AppCompatActivity {
         this.textView_btAdd = findViewById(R.id.textview_controller_btAdd);                         // Shows the Bluetooth device address to connect
         this.textView_btName = findViewById(R.id.textview_controller_btName);                       // Shows the Bluetooth device name to connect
         this.button_connect = findViewById(R.id.button_controller_connect);                         // Tries to setup a connection to a Bluetooth device
+        this.button_testPico = findViewById(R.id.button_controller_test_pico);                      // Test Emstat Pico
+        this.button_testPico.setVisibility(View.GONE);
 
         // This handles all Bluetooth messages
         this.myHandler = new Handler(m->{
+            Bundle dataMessage = m.getData();
+            if (dataMessage != null) {
+                String message = dataMessage.getString(BluetoothConnection.DADOS);
+                if (message != null) {
 
+                    Log.d(TAG, message);
+                    if (message.contains("Pico_OK")) {
+                        MensagensToast.showMessage(getApplicationContext(), "Potentiostat OK");
+                        this.button_testPico.setVisibility(View.GONE);
+                    }else {
+                        MensagensToast.showMessage(getApplicationContext(), "Potentiostat Not OK!\nTry again!!");
+                    }
+                }else{
+                    Log.d(TAG, "Null");
+                }
+            }
             return false;
         });
 
@@ -68,6 +89,8 @@ public class ControllerActivity extends AppCompatActivity {
             }
         }
 
+        this.button_testPico.setOnClickListener(new TestPicoListener());
+
         this.button_connect.setOnClickListener(v -> {
             boolean isChecked = this.button_connect.isChecked();
 
@@ -81,6 +104,8 @@ public class ControllerActivity extends AppCompatActivity {
                             BluetoothFacade bluetoothFacade = new BluetoothFacade(this.myConnection);
                             bluetoothFacade.sendEnableConnection();
                             MensagensToast.showMessage(getApplicationContext(), "Conection Ready");
+                            this.button_testPico.setVisibility(View.VISIBLE);
+
                         }else{
                             MensagensToast.showMessage(getApplicationContext(), "Conection Already Ready");
                         }
@@ -115,5 +140,21 @@ public class ControllerActivity extends AppCompatActivity {
             }
 
         });
+    }
+
+    private class TestPicoListener implements View.OnClickListener {
+        @Override
+        public void onClick(View v) {
+            if (isBluetoothKnown) {
+                if (myConnection.isConnectionStablished() && myConnection.isEneable()){
+                    BluetoothFacade facade = new BluetoothFacade(myConnection);
+                    try {
+                        facade.testEmstat();
+                    } catch (BluetoothException e) {
+                        MensagensToast.showMessage(getApplicationContext(), e.getMessage());
+                    }
+                }
+            }
+        }
     }
 }

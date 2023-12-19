@@ -14,7 +14,20 @@ public class BluetoothFacade {
     }
 
     public void sendDisableConnection() throws BluetoothException {
-        String request = "disconnect\n";
+        String request = "discon\n";
         this.connection.sendData(request);
+    }
+
+    public void testEmstat() throws BluetoothException {
+        String request = "pico_ver\n";
+        this.connection.sendData(request);
+    }
+
+    public void sendRhodamine() throws BluetoothException{
+        this.connection.sendData("scan\n");
+    }
+
+    public void sendHepatitis() throws BluetoothException {
+        this.connection.sendData("hep\n");
     }
 }

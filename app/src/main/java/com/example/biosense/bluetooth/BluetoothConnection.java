@@ -46,7 +46,9 @@ public class BluetoothConnection extends Bluetooth implements Runnable {
 	}
 
 	public void eneableConnection() {
+		Thread t = new Thread(this);
 		this.stop = true;
+		t.start();
 	}
 
 	@Override
@@ -56,7 +58,7 @@ public class BluetoothConnection extends Bluetooth implements Runnable {
 
 			try {
 				int byteDisponivel = inputData.available();
-				byte dados[] = new byte[byteDisponivel];
+				byte[] dados = new byte[byteDisponivel];
 				inputData.read(dados, 0, byteDisponivel);
 				//Testa o tamanho dos dados recebidos
 				if (dados.length > 0) {
@@ -84,7 +86,7 @@ public class BluetoothConnection extends Bluetooth implements Runnable {
 		if (s.contains("{") && s.contains("}")){
 			this.jsonHelper.addJsonLine(s);
 		}else{
-			bundle.putCharArray(DADOS, data);
+			bundle.putString(DADOS, s);
 			mensagem.setData(bundle);
 			handler.sendMessage(mensagem);
 		}
