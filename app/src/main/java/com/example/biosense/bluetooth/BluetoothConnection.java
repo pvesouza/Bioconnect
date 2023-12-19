@@ -8,10 +8,12 @@ import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.util.Log;
 
 import androidx.core.app.ActivityCompat;
 
 import com.example.biosense.R;
+import com.example.biosense.json.JsonBaseHelper;
 import com.example.biosense.utils.MensagensToast;
 
 import java.io.IOException;
@@ -19,6 +21,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.nio.charset.StandardCharsets;
 
 
 public class BluetoothConnection extends Bluetooth implements Runnable {
@@ -29,19 +32,23 @@ public class BluetoothConnection extends Bluetooth implements Runnable {
 	private BluetoothSocket socket;
 	private InputStream inputData;
 	private OutputStream outputData;
-	private Handler handler;
+	private final Handler handler;
 	private static final long TIME = 500;
 	private boolean stop = false;
-	private Context context;
+	private final Context context;
+	private JsonBaseHelper jsonHelper;
 
 	public BluetoothConnection(Context context, Handler handler) {
 		super(context);
 		this.context = context;
 		this.handler = handler;
+		this.jsonHelper = new JsonBaseHelper();
 	}
 
 	public void eneableConnection() {
+		Thread t = new Thread(this);
 		this.stop = true;
+		t.start();
 	}
 
 	@Override
@@ -51,7 +58,7 @@ public class BluetoothConnection extends Bluetooth implements Runnable {
 
 			try {
 				int byteDisponivel = inputData.available();
-				byte dados[] = new byte[byteDisponivel];
+				byte[] dados = new byte[byteDisponivel];
 				inputData.read(dados, 0, byteDisponivel);
 				//Testa o tamanho dos dados recebidos
 				if (dados.length > 0) {
@@ -72,19 +79,26 @@ public class BluetoothConnection extends Bluetooth implements Runnable {
 
 		Message mensagem = new Message();
 		Bundle bundle = new Bundle();
-		char data[] = this.byteToChar(dados);
-		bundle.putCharArray(DADOS, data);
-		mensagem.setData(bundle);
-		handler.sendMessage(mensagem);
-
+		char[] data = this.byteToChar(dados);
+		String s = new String(data);
+		Log.d("RECEIVED: ", s);
+		// Test if it is a JSON Packet
+		if (s.contains("{") && s.contains("}")){
+			this.jsonHelper.addJsonLine(s);
+		}else{
+			bundle.putString(DADOS, s);
+			mensagem.setData(bundle);
+			handler.sendMessage(mensagem);
+		}
 	}
 
 	private char[] byteToChar(byte[] bytes) {
-		short dados[] = new short[bytes.length];
-		char dadoc[] = new char[bytes.length];
+		short[] dados = new short[bytes.length];
+		char[] dadoc = new char[bytes.length];
+
 		for (int i = 0; i < bytes.length; i++) {
 
-			if (bytes[i] <= 127 && bytes[i] >= 0) {
+			if (bytes[i] >= 0) {
 				dados[i] = (short) bytes[i];
 
 			} else {
@@ -97,7 +111,7 @@ public class BluetoothConnection extends Bluetooth implements Runnable {
 
 	public void sendData(byte[] data) throws BluetoothException {
 		//Testa se h� conex�o
-		if (this.isConexaoEneable()) {
+		if (this.isConnectionStablished()) {
 			try {
 				outputData.write(data);
 			} catch (IOException e) {
@@ -110,8 +124,26 @@ public class BluetoothConnection extends Bluetooth implements Runnable {
 		}
 	}
 
-	public boolean isConexaoEneable() {
-		return socket != null && socket.isConnected();
+	public void sendData(String request) throws BluetoothException {
+		byte[] data = request.getBytes(StandardCharsets.UTF_8);
+		//Testa se h� conex�o
+		if (this.isConnectionStablished()) {
+			try {
+				outputData.write(data);
+			} catch (IOException e) {
+				String menssagem = context.getString(R.string.bluetooth_connection_envio_dados);
+				throw new BluetoothException(menssagem);
+			}
+		} else {
+			String menssagem = context.getString(R.string.bluetooth_connection_erro_conexao);
+			throw new BluetoothException(menssagem);
+		}
+	}
+
+	public boolean isConnectionStablished() {
+		if (socket != null)
+			return socket.isConnected();
+		return false;
 	}
 
 	//Finaliza a conex�o bluetooth
@@ -119,7 +151,7 @@ public class BluetoothConnection extends Bluetooth implements Runnable {
 		this.stop = false;
 		//Tenta fechar o socket
 		try {
-			if (this.isConexaoEneable()) {
+			if (this.isConnectionStablished()) {
 				inputData.close();
 				outputData.close();
 				socket.close();
@@ -130,21 +162,42 @@ public class BluetoothConnection extends Bluetooth implements Runnable {
 		}
 	}
 
-	public void conectaBluetooth(BluetoothDevice device) throws NoSuchMethodException, IllegalAccessException, IllegalArgumentException,
-			InvocationTargetException, IOException {
+	public void conectaBluetooth(BluetoothDevice device) throws BluetoothException {
 		//Testa se o dispositivo para conex�o � nulo
 		if (device != null) {
-			M = device.getClass().getMethod(BluetoothConnection.CONEXAO, new Class[]{int.class});
-			socket = (BluetoothSocket) M.invoke(device, Integer.valueOf(1));
+			try {
+				M = device.getClass().getMethod(BluetoothConnection.CONEXAO, int.class);
+			} catch (NoSuchMethodException e) {
+				throw new BluetoothException("Method does not exist");
+			}
+			try {
+				socket = (BluetoothSocket) M.invoke(device, 1);
+			} catch (IllegalAccessException | InvocationTargetException e) {
+				throw new BluetoothException("Socket could not be initialized");
+			}
 			//Testa se o Socket � nulo
 			if (socket != null) {
-				if (ActivityCompat.checkSelfPermission(this.context, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
-					socket.connect();
-					inputData = socket.getInputStream();
-					outputData = socket.getOutputStream();
+				if (ActivityCompat.checkSelfPermission(this.context, Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED) {
+					try {
+						socket.connect();
+					} catch (IOException e) {
+						throw new BluetoothException("Connection error");
+					}
+					try {
+						inputData = socket.getInputStream();
+					} catch (IOException e) {
+						throw new BluetoothException("Input stream error");
+					}
+					try {
+						outputData = socket.getOutputStream();
+					} catch (IOException e) {
+						throw new BluetoothException("Outputstream error");
+					}
 					MensagensToast.showMessage(this.context, "Bluetooth Connection Stablished");
 				}
 			}
+		}else{
+			throw new BluetoothException("Device does not exists");
 		}
 
 	}

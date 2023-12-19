@@ -8,9 +8,53 @@
 
     <androidx.recyclerview.widget.RecyclerView
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:id="@+id/recycler_devices_list">
+        android:layout_height="wrap_content"
+        android:id="@+id/recycler_devices_list"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/textview_list_bt_not_paired_devices"
+        app:layout_constraintTop_toBottomOf="@id/textview_list_bt_devices_title">
 
     </androidx.recyclerview.widget.RecyclerView>
+
+    <TextView
+        android:id="@+id/textview_list_bt_devices_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/list_of_paired_devices"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:layout_margin="16dp"/>
+
+    <TextView
+        android:id="@+id/textview_list_bt_not_paired_devices"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        android:text="List of scanned devices"
+        app:layout_constraintBottom_toTopOf="@+id/recycler_not_paired_devices_list"
+        app:layout_constraintEnd_toStartOf="@id/button_scan_list_bluetooth_devices"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/recycler_devices_list" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/recycler_not_paired_devices_list"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/textview_list_bt_devices_title"/>
+
+    <Button
+        android:id="@+id/button_scan_list_bluetooth_devices"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/list_bt_button_scan_name"
+        app:layout_constraintBottom_toTopOf="@+id/recycler_not_paired_devices_list"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/textview_list_bt_not_paired_devices"
+        app:layout_constraintTop_toBottomOf="@+id/recycler_devices_list" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

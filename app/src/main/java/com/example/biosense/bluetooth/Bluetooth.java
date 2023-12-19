@@ -3,6 +3,7 @@ package com.example.biosense.bluetooth;
 import android.Manifest;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
+import android.bluetooth.le.BluetoothLeScanner;
 import android.content.Context;
 import android.content.pm.PackageManager;
 
@@ -16,6 +17,7 @@ public class Bluetooth {
 
 	private BluetoothAdapter adaptadorDispositivo;
 	private BluetoothDevice myDevice;
+	private List<BluetoothDevice> surroundingDevices;
 	public static final String MACADDRESS = "MACADD";
 	public static final String NOMEBLUETOOTH = "NOMEBLUE";
 	private Context btContext;
@@ -23,6 +25,19 @@ public class Bluetooth {
 	public Bluetooth(Context context) {
 		adaptadorDispositivo = BluetoothAdapter.getDefaultAdapter();
 		this.btContext = context;
+		this.surroundingDevices = new ArrayList<>();
+	}
+
+	public void scanNewDevices() {
+		BluetoothLeScanner scanner = adaptadorDispositivo.getBluetoothLeScanner();
+	}
+
+	public List<BluetoothDevice> getSurroundingDevices() {
+		return surroundingDevices;
+	}
+
+	public boolean isEneable() {
+		return this.adaptadorDispositivo.isEnabled();
 	}
 
 	public BluetoothDevice getMyDevice() {
@@ -45,6 +60,10 @@ public class Bluetooth {
 	public List<BluetoothDevice> getPairedDevices() {
 
 		if (ActivityCompat.checkSelfPermission(this.btContext, Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED) {
+
+			if (!this.adaptadorDispositivo.isEnabled()){
+				this.adaptadorDispositivo.enable();
+			}
 			Set<BluetoothDevice> set = this.adaptadorDispositivo.getBondedDevices();
 			List<BluetoothDevice> lista = new ArrayList<BluetoothDevice>();
 
@@ -66,30 +85,23 @@ public class Bluetooth {
 
 	public BluetoothDevice getDevice(String nome, String macAddress) {
 
-		if (ActivityCompat.checkSelfPermission(this.btContext, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
-			// TODO: Consider calling
-			//    ActivityCompat#requestPermissions
-			// here to request the missing permissions, and then overriding
-			//   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-			//                                          int[] grantResults)
-			// to handle the case where the user grants the permission. See the documentation
-			// for ActivityCompat#requestPermissions for more details.
-			return null;
-		}
-		Set<BluetoothDevice> set = this.adaptadorDispositivo.getBondedDevices();
-		BluetoothDevice bt = null;
-		
-		if (set.size() > 0){
-	
-			for (BluetoothDevice bluetoothDevice : set) {
-				
-				if (bluetoothDevice.getAddress().equals(macAddress) && bluetoothDevice.getName().equals(nome)){
-					bt = bluetoothDevice;
+		if (ActivityCompat.checkSelfPermission(this.btContext, Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED) {
+			Set<BluetoothDevice> set = this.adaptadorDispositivo.getBondedDevices();
+			BluetoothDevice bt = null;
+
+			if (set.size() > 0){
+
+				for (BluetoothDevice bluetoothDevice : set) {
+
+					if (bluetoothDevice.getAddress().equals(macAddress) && bluetoothDevice.getName().equals(nome)){
+						bt = bluetoothDevice;
+					}
 				}
 			}
+
+			return bt;
 		}
-		
-		return bt;
+		return null;
 	}
 	
 	
