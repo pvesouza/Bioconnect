@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".ControllerActivity">
+
+    <TextView
+        android:id="@+id/textview_controller_btName"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
+        android:text="@string/controller_device_name"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/textview_controller_btAdd"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
+        android:text="@string/address"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/textview_controller_btName"/>
+
+    <androidx.appcompat.widget.AppCompatToggleButton
+        android:id="@+id/button_controller_connect"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:checked="false"
+        android:textOn="Disconnect"
+        android:textOff="Connect"
+        app:layout_constraintBottom_toBottomOf="@+id/textview_controller_btAdd"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/textview_controller_btName" />
+
+    <Button
+        android:id="@+id/button_controller_test_pico"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="8dp"
+        android:text="Test"
+        app:layout_constraintBottom_toBottomOf="@+id/button_controller_connect"
+        app:layout_constraintEnd_toStartOf="@+id/button_controller_connect"
+        app:layout_constraintStart_toEndOf="@+id/textview_controller_btAdd"
+        app:layout_constraintTop_toTopOf="@+id/button_controller_connect" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

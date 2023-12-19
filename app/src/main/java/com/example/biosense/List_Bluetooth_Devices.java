@@ -11,7 +11,12 @@ import android.Manifest;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
+import android.view.View;
+import android.widget.Button;
+import android.widget.TextView;
 
 import com.example.biosense.bluetooth.Bluetooth;
 import com.example.biosense.bluetooth.BluetoothListAdapter;
@@ -23,44 +28,56 @@ public class List_Bluetooth_Devices extends AppCompatActivity {
 
     private RecyclerView myRecycler;
     private RecyclerView.LayoutManager recyclerManager;
+    private Button scan_button;
+
+    private RecyclerView recycler_not_paired;
     private Bluetooth btHelper;
     private List<BluetoothDevice> myBtDevices;
+    private List<BluetoothDevice> notPairedDevices;
+    private BluetoothListAdapter myAdapter;
+
+    private BluetoothListAdapter scanAdapter;
+
+    private TextView textViewTitle;
 
     protected static int REQUEST_BLUETOOTH_CONNECT = 12;
 
-    private ActivityResultLauncher<String> requestResult = registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted ->{
-        if (isGranted){
-            MensagensToast.showMessage(this, "Permission granted!!");
-            // Update the Recycler View
-            this.myBtDevices = this.btHelper.getPairedDevices();
-            if (this.myBtDevices.isEmpty()){
-                MensagensToast.showMessage(this, "No devices Connected");
-            }else{
-                BluetoothListAdapter myAdapter = new BluetoothListAdapter(getApplicationContext(), this.myBtDevices);
-                recyclerManager = new LinearLayoutManager(this);
-                this.myRecycler.setLayoutManager(recyclerManager);
-                this.myRecycler.setAdapter(myAdapter);
-            }
-
-        }else{
-            MensagensToast.showMessage(this, "Permission not granted!!");
-            // TODO show eduational UI
-        }
-    });
-
-    // Result of Bluetooth eneble request
     private ActivityResultLauncher<Intent> resultActivity = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(),
             result->{
                 if (result.getResultCode() == RESULT_OK){
                     MensagensToast.showMessage(this, "Bluetooth eneabled");
-                    ActivityCompat.requestPermissions(List_Bluetooth_Devices.this, new String[]{
-                            Manifest.permission.BLUETOOTH_CONNECT
-                    }, REQUEST_BLUETOOTH_CONNECT);
+//                    ActivityCompat.requestPermissions(List_Bluetooth_Devices.this, new String[]{
+//                            Manifest.permission.BLUETOOTH_CONNECT
+//                    }, REQUEST_BLUETOOTH_CONNECT);
+                    // Update the Recycler View
+                    updateListOfPairedDevices();
                 }else{
                     MensagensToast.showMessage(this, "Bluetooth not eneabled");
                 }
             }
     );
+
+    private ActivityResultLauncher<String> requestResult = registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted ->{
+
+        if (isGranted){
+            MensagensToast.showMessage(this, "Permission granted!!");
+
+            if (this.btHelper.isEneable()) {
+                // Update the Recycler View
+                updateListOfPairedDevices();
+            }else {
+                Intent request = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+                resultActivity.launch(request);
+            }
+
+           }else{
+            MensagensToast.showMessage(this, "Permission not granted!!");
+            // TODO show educational UI
+        }
+    });
+
+    // Result of Bluetooth eneble request
+
 
 
     @Override
@@ -69,18 +86,92 @@ public class List_Bluetooth_Devices extends AppCompatActivity {
         setContentView(R.layout.activity_list_bluetooth_devices);
         this.btHelper = new Bluetooth(getApplicationContext());
         this.myRecycler = findViewById(R.id.recycler_devices_list);
+        this.textViewTitle = findViewById(R.id.textview_list_bt_devices_title);
+        this.recycler_not_paired = findViewById(R.id.recycler_not_paired_devices_list);
+        this.scan_button = findViewById(R.id.button_scan_list_bluetooth_devices);
 
+        this.recyclerManager = new LinearLayoutManager(this);
+        this.myRecycler.setLayoutManager(recyclerManager);
+
+        this.scan_button.setOnClickListener(new ScanListener());
+        this.recycler_not_paired.setLayoutManager(new LinearLayoutManager(this));
 
         if (this.btHelper.isBluetoothAvailable()) {
             // Bluetooth is enabled ? If not Request to enable bluetooth device
-            if (!this.btHelper.getAdaptadorBluetooth().isEnabled()){
+            if (!this.btHelper.getAdaptadorBluetooth().isEnabled()) {
 
-                Intent request = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-                resultActivity.launch(request);
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                    requestResult.launch(Manifest.permission.BLUETOOTH_CONNECT);
+                }else {
+                    Intent request = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+                    resultActivity.launch(request);
+                }
+            }else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                requestResult.launch(Manifest.permission.BLUETOOTH_CONNECT);
             }
 
         }else{
-            MensagensToast.showMessage(this, "No Bluetooth Devices");
+            MensagensToast.showMessage(this, "No Bluetooth Hardware Available");
+        }
+    }
+
+    private void updateListOfPairedDevices() {
+        // Update the Recycler View
+        this.myBtDevices = this.btHelper.getPairedDevices();
+        if (this.myBtDevices != null) {
+
+            if (this.myBtDevices.isEmpty()) {
+                MensagensToast.showMessage(this, "No Paired devices");
+            } else {
+                this.myAdapter = new BluetoothListAdapter(getApplicationContext(), this.myBtDevices);
+                this.scanAdapter = new BluetoothListAdapter(getApplicationContext(), this.btHelper.getSurroundingDevices());
+                // Set Bluetooth item listener
+                this.myAdapter.setOnClickListener(new MyHoldListener());
+                this.scanAdapter.setOnClickListener(new MyScannedDevicesListener());
+                // Setting adapter to recycler
+                this.myRecycler.setAdapter(myAdapter);
+                this.recycler_not_paired.setAdapter(this.scanAdapter);
+                String title = getString(R.string.list_of_paired_devices);
+                title = title + ": " + this.myBtDevices.size();
+                this.textViewTitle.setText(title);
+                Log.d("List 3", "paired");
+            }
+        }else{
+            MensagensToast.showMessage(getApplicationContext(), "Permission not granted");
+        }
+    }
+
+    public class MyHoldListener implements BluetoothListAdapter.MyOnclickListener {
+        @Override
+        public void onClick(String btName, String btAdd) {
+            // Starts Controller Activity passing the Bluetooth specifications
+            Bundle b = new Bundle();
+            b.putString("BT_NAME",btName);
+            b.putString("BT_ADD", btAdd);
+            Intent it = new Intent(getApplicationContext(), ControllerActivity.class);
+            it.putExtras(b);
+            startActivity(it);
+        }
+    }
+
+    public class MyScannedDevicesListener implements BluetoothListAdapter.MyOnclickListener{
+
+        @Override
+        public void onClick(String btName, String btAdd) {
+
+        }
+    }
+
+    public class ScanListener implements View.OnClickListener{
+
+        @Override
+        public void onClick(View v) {
+            if (btHelper.isBluetoothAvailable()) {
+                // Scan for new devices
+
+            }else {
+                MensagensToast.showMessage(getApplicationContext(), "No Bluetooth Hardware Available");
+            }
         }
     }
 }

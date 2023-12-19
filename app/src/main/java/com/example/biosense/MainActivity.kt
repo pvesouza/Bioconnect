@@ -10,6 +10,13 @@ class MainActivity : ComponentActivity(), Runnable {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.splash_layout)
 
+//        val handler:Handler = Handler(this.mainLooper)
+//        val myThread:Thread = Thread(this)
+//        handler.postDelayed(this, 3000)
+    }
+
+    override fun onResume() {
+        super.onResume()
         val handler:Handler = Handler(this.mainLooper)
         val myThread:Thread = Thread(this)
         handler.postDelayed(this, 3000)
