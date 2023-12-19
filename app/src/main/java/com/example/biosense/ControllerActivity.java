@@ -44,7 +44,7 @@ public class ControllerActivity extends AppCompatActivity {
         this.button_testPico.setVisibility(View.GONE);
 
         // This handles all Bluetooth messages
-        this.myHandler = new Handler(m->{
+        this.myHandler = new Handler(m -> {
             Bundle dataMessage = m.getData();
             if (dataMessage != null) {
                 String message = dataMessage.getString(BluetoothConnection.DADOS);
@@ -54,10 +54,10 @@ public class ControllerActivity extends AppCompatActivity {
                     if (message.contains("Pico_OK")) {
                         MensagensToast.showMessage(getApplicationContext(), "Potentiostat OK");
                         this.button_testPico.setVisibility(View.GONE);
-                    }else {
+                    } else {
                         MensagensToast.showMessage(getApplicationContext(), "Potentiostat Not OK!\nTry again!!");
                     }
-                }else{
+                } else {
                     Log.d(TAG, "Null");
                 }
             }
@@ -83,7 +83,7 @@ public class ControllerActivity extends AppCompatActivity {
                 // Sets up and open a Bluetooth connection
                 this.myConnection = new BluetoothConnection(getApplicationContext(), this.myHandler);
 
-            }else{
+            } else {
                 this.isBluetoothKnown = false;
                 MensagensToast.showMessage(this, "No Bluetooth data received");
             }
@@ -94,7 +94,7 @@ public class ControllerActivity extends AppCompatActivity {
         this.button_connect.setOnClickListener(v -> {
             boolean isChecked = this.button_connect.isChecked();
 
-            if (isChecked){
+            if (isChecked) {
                 Log.d(TAG, isChecked + "");
                 if (isBluetoothKnown) {
                     try {
@@ -106,7 +106,7 @@ public class ControllerActivity extends AppCompatActivity {
                             MensagensToast.showMessage(getApplicationContext(), "Conection Ready");
                             this.button_testPico.setVisibility(View.VISIBLE);
 
-                        }else{
+                        } else {
                             MensagensToast.showMessage(getApplicationContext(), "Conection Already Ready");
                         }
 
@@ -115,13 +115,13 @@ public class ControllerActivity extends AppCompatActivity {
                         this.button_connect.setText("Connect");
                         MensagensToast.showMessage(getApplicationContext(), e.getMessage());
                     }
-                }else {
+                } else {
                     this.button_connect.setChecked(false);
                     this.button_connect.setText("Connect");
                     MensagensToast.showMessage(getApplicationContext(), "Bluetooth not known!!");
                 }
 
-            }else {
+            } else {
                 Log.d(TAG, isChecked + "");
                 if (isBluetoothKnown) {
                     if (this.myConnection.isConnectionStablished()) {
@@ -140,6 +140,18 @@ public class ControllerActivity extends AppCompatActivity {
             }
 
         });
+    }
+    @Override
+    public void onDestroy(){
+        super.onDestroy();
+        if (this.myConnection.isConnectionStablished()) {
+            BluetoothFacade f = new BluetoothFacade(this.myConnection);
+            try {
+                f.sendDisableConnection();
+            } catch (BluetoothException e) {
+                MensagensToast.showMessage(getApplicationContext(), "Connection not interrupted");
+            }
+        }
     }
 
     private class TestPicoListener implements View.OnClickListener {

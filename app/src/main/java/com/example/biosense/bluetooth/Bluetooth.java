@@ -3,6 +3,7 @@ package com.example.biosense.bluetooth;
 import android.Manifest;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
+import android.bluetooth.le.BluetoothLeScanner;
 import android.content.Context;
 import android.content.pm.PackageManager;
 
@@ -16,6 +17,7 @@ public class Bluetooth {
 
 	private BluetoothAdapter adaptadorDispositivo;
 	private BluetoothDevice myDevice;
+	private List<BluetoothDevice> surroundingDevices;
 	public static final String MACADDRESS = "MACADD";
 	public static final String NOMEBLUETOOTH = "NOMEBLUE";
 	private Context btContext;
@@ -23,6 +25,15 @@ public class Bluetooth {
 	public Bluetooth(Context context) {
 		adaptadorDispositivo = BluetoothAdapter.getDefaultAdapter();
 		this.btContext = context;
+		this.surroundingDevices = new ArrayList<>();
+	}
+
+	public void scanNewDevices() {
+		BluetoothLeScanner scanner = adaptadorDispositivo.getBluetoothLeScanner();
+	}
+
+	public List<BluetoothDevice> getSurroundingDevices() {
+		return surroundingDevices;
 	}
 
 	public boolean isEneable() {

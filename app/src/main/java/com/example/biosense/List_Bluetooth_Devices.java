@@ -15,6 +15,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
 import android.widget.TextView;
 
 import com.example.biosense.bluetooth.Bluetooth;
@@ -27,9 +28,15 @@ public class List_Bluetooth_Devices extends AppCompatActivity {
 
     private RecyclerView myRecycler;
     private RecyclerView.LayoutManager recyclerManager;
+    private Button scan_button;
+
+    private RecyclerView recycler_not_paired;
     private Bluetooth btHelper;
     private List<BluetoothDevice> myBtDevices;
+    private List<BluetoothDevice> notPairedDevices;
     private BluetoothListAdapter myAdapter;
+
+    private BluetoothListAdapter scanAdapter;
 
     private TextView textViewTitle;
 
@@ -80,10 +87,14 @@ public class List_Bluetooth_Devices extends AppCompatActivity {
         this.btHelper = new Bluetooth(getApplicationContext());
         this.myRecycler = findViewById(R.id.recycler_devices_list);
         this.textViewTitle = findViewById(R.id.textview_list_bt_devices_title);
+        this.recycler_not_paired = findViewById(R.id.recycler_not_paired_devices_list);
+        this.scan_button = findViewById(R.id.button_scan_list_bluetooth_devices);
+
         this.recyclerManager = new LinearLayoutManager(this);
         this.myRecycler.setLayoutManager(recyclerManager);
 
-
+        this.scan_button.setOnClickListener(new ScanListener());
+        this.recycler_not_paired.setLayoutManager(new LinearLayoutManager(this));
 
         if (this.btHelper.isBluetoothAvailable()) {
             // Bluetooth is enabled ? If not Request to enable bluetooth device
@@ -113,10 +124,13 @@ public class List_Bluetooth_Devices extends AppCompatActivity {
                 MensagensToast.showMessage(this, "No Paired devices");
             } else {
                 this.myAdapter = new BluetoothListAdapter(getApplicationContext(), this.myBtDevices);
+                this.scanAdapter = new BluetoothListAdapter(getApplicationContext(), this.btHelper.getSurroundingDevices());
                 // Set Bluetooth item listener
                 this.myAdapter.setOnClickListener(new MyHoldListener());
+                this.scanAdapter.setOnClickListener(new MyScannedDevicesListener());
                 // Setting adapter to recycler
                 this.myRecycler.setAdapter(myAdapter);
+                this.recycler_not_paired.setAdapter(this.scanAdapter);
                 String title = getString(R.string.list_of_paired_devices);
                 title = title + ": " + this.myBtDevices.size();
                 this.textViewTitle.setText(title);
@@ -137,6 +151,27 @@ public class List_Bluetooth_Devices extends AppCompatActivity {
             Intent it = new Intent(getApplicationContext(), ControllerActivity.class);
             it.putExtras(b);
             startActivity(it);
+        }
+    }
+
+    public class MyScannedDevicesListener implements BluetoothListAdapter.MyOnclickListener{
+
+        @Override
+        public void onClick(String btName, String btAdd) {
+
+        }
+    }
+
+    public class ScanListener implements View.OnClickListener{
+
+        @Override
+        public void onClick(View v) {
+            if (btHelper.isBluetoothAvailable()) {
+                // Scan for new devices
+
+            }else {
+                MensagensToast.showMessage(getApplicationContext(), "No Bluetooth Hardware Available");
+            }
         }
     }
 }
