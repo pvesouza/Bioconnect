@@ -81,6 +81,7 @@ public class BluetoothConnection extends Bluetooth implements Runnable {
 		Bundle bundle = new Bundle();
 		char[] data = this.byteToChar(dados);
 		String s = new String(data);
+		String message = "";
 		String[] packets = s.split("\n");
 
 		for (int i = 0; i < packets.length; i++) {
@@ -91,14 +92,13 @@ public class BluetoothConnection extends Bluetooth implements Runnable {
 				this.jsonHelper.addJsonLine(packets[i]);
 			}else {
 				if (!packets[i].equals("\n")) {
-					bundle.putString(DADOS, packets[i]);
-					mensagem.setData(bundle);
-					handler.sendMessage(mensagem);
+					message += packets[i];
 				}
 			}
 		}
-
-
+		bundle.putString(DADOS, message);
+		mensagem.setData(bundle);
+		handler.sendMessage(mensagem);
 	}
 
 	private char[] byteToChar(byte[] bytes) {
