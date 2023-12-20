@@ -81,15 +81,24 @@ public class BluetoothConnection extends Bluetooth implements Runnable {
 		Bundle bundle = new Bundle();
 		char[] data = this.byteToChar(dados);
 		String s = new String(data);
-		Log.d("RECEIVED: ", s);
-		// Test if it is a JSON Packet
-		if (s.contains("{") && s.contains("}")){
-			this.jsonHelper.addJsonLine(s);
-		}else{
-			bundle.putString(DADOS, s);
-			mensagem.setData(bundle);
-			handler.sendMessage(mensagem);
+		String message = "";
+		String[] packets = s.split("\n");
+
+		for (int i = 0; i < packets.length; i++) {
+
+			Log.d("RECEIVED: ", packets[i]);
+			// Test if it is a JSON Packet
+			if (packets[i].contains("{") && packets[i].contains("}")){
+				this.jsonHelper.addJsonLine(packets[i]);
+			}else {
+				if (!packets[i].equals("\n")) {
+					message += packets[i];
+				}
+			}
 		}
+		bundle.putString(DADOS, message);
+		mensagem.setData(bundle);
+		handler.sendMessage(mensagem);
 	}
 
 	private char[] byteToChar(byte[] bytes) {

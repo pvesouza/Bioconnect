@@ -1,5 +1,7 @@
 package com.example.biosense;
 
+import static android.view.View.GONE;
+
 import androidx.appcompat.app.AppCompatActivity;
 
 
@@ -10,7 +12,11 @@ import android.os.Handler;
 import android.os.HandlerThread;
 import android.util.Log;
 import android.view.View;
+import android.widget.ArrayAdapter;
+import android.widget.BaseAdapter;
 import android.widget.Button;
+import android.widget.ProgressBar;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.ToggleButton;
 
@@ -20,18 +26,29 @@ import com.example.biosense.bluetooth.BluetoothException;
 import com.example.biosense.bluetooth.BluetoothFacade;
 import com.example.biosense.utils.MensagensToast;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+
 public class ControllerActivity extends AppCompatActivity {
 
     protected static final String TAG = "Controller";
     protected boolean isBluetoothKnown;
-    private TextView textView_btName, textView_btAdd;
+    private TextView textView_btName, textView_btAdd, textViewResult;
     protected ToggleButton button_connect;
-    protected Button button_testPico;
+    protected Button button_testPico, buttonStart;
+    protected Spinner spinnerTechniques;
     protected BluetoothConnection myConnection;
+    private ProgressBar commBar;
 
     protected BluetoothDevice deviceToConnect;
 
     protected Handler myHandler;
+
+    private final String[] techniques = new String[] {
+            "",
+            "Rhodamine test",
+            "D-Hepatitis"
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,8 +57,18 @@ public class ControllerActivity extends AppCompatActivity {
         this.textView_btAdd = findViewById(R.id.textview_controller_btAdd);                         // Shows the Bluetooth device address to connect
         this.textView_btName = findViewById(R.id.textview_controller_btName);                       // Shows the Bluetooth device name to connect
         this.button_connect = findViewById(R.id.button_controller_connect);                         // Tries to setup a connection to a Bluetooth device
+        this.buttonStart = findViewById(R.id.button_controller_start);                              // Strts an Exam
+        this.textViewResult = findViewById(R.id.textView_controller_result);
+        this.spinnerTechniques = findViewById(R.id.spinner_controller_techniques);
         this.button_testPico = findViewById(R.id.button_controller_test_pico);                      // Test Emstat Pico
-        this.button_testPico.setVisibility(View.GONE);
+        this.button_testPico.setVisibility(GONE);
+        this.commBar = findViewById(R.id.progressBar_controller);
+        this.commBar.setVisibility(GONE);
+
+        // Initializes the Spinner List
+        ArrayList<String> techniquesArray = new ArrayList<>(Arrays.asList(techniques));
+        ArrayAdapter<String> spinnerAdapter = new ArrayAdapter<>(getApplicationContext(), android.R.layout.simple_spinner_dropdown_item, techniquesArray);
+        this.spinnerTechniques.setAdapter(spinnerAdapter);
 
         // This handles all Bluetooth messages
         this.myHandler = new Handler(m -> {
@@ -53,9 +80,14 @@ public class ControllerActivity extends AppCompatActivity {
                     Log.d(TAG, message);
                     if (message.contains("Pico_OK")) {
                         MensagensToast.showMessage(getApplicationContext(), "Potentiostat OK");
-                        this.button_testPico.setVisibility(View.GONE);
-                    } else {
+                        this.button_testPico.setVisibility(GONE);
+                    } else if (message.contains("Pico_NOK")){
                         MensagensToast.showMessage(getApplicationContext(), "Potentiostat Not OK!\nTry again!!");
+                    }else if (message.contains("End_")) {
+                        MensagensToast.showMessage(getApplicationContext(), "End of Exam!");
+                        commBar.setVisibility(View.GONE);
+                    }else if (message.contains("Response_begin")) {
+                        commBar.setVisibility(View.VISIBLE);
                     }
                 } else {
                     Log.d(TAG, "Null");
@@ -90,7 +122,9 @@ public class ControllerActivity extends AppCompatActivity {
         }
 
         this.button_testPico.setOnClickListener(new TestPicoListener());
+        this.buttonStart.setOnClickListener(new RunExamListener());
 
+        // Test Connection and tries to connect with potentiostat via bluetooth
         this.button_connect.setOnClickListener(v -> {
             boolean isChecked = this.button_connect.isChecked();
 
@@ -143,6 +177,7 @@ public class ControllerActivity extends AppCompatActivity {
     }
     @Override
     public void onDestroy(){
+        // Stops Bluetooth connection
         super.onDestroy();
         if (this.myConnection.isConnectionStablished()) {
             BluetoothFacade f = new BluetoothFacade(this.myConnection);
@@ -154,6 +189,7 @@ public class ControllerActivity extends AppCompatActivity {
         }
     }
 
+    // Sends a command to Potentiostat to test emstat hardware
     private class TestPicoListener implements View.OnClickListener {
         @Override
         public void onClick(View v) {
@@ -164,6 +200,43 @@ public class ControllerActivity extends AppCompatActivity {
                         facade.testEmstat();
                     } catch (BluetoothException e) {
                         MensagensToast.showMessage(getApplicationContext(), e.getMessage());
+                    }
+                }
+            }
+        }
+    }
+
+    // Chooses an exam in order to run
+    private class RunExamListener implements View.OnClickListener{
+
+        @Override
+        public void onClick(View v) {
+            if (isBluetoothKnown) {
+                if (myConnection.isConnectionStablished() && myConnection.isEneable()){
+                    BluetoothFacade facade = new BluetoothFacade(myConnection);
+                    int position = spinnerTechniques.getSelectedItemPosition();
+
+                    switch (position) {
+                        case 0:
+                            MensagensToast.showMessage(getApplicationContext(), "No Exam chosen");
+                            Log.d(TAG, techniques[0]);
+                            break;
+                        case 1:
+                            try {
+                                facade.sendRhodamine();
+                            } catch (BluetoothException e) {
+                                MensagensToast.showMessage(getApplicationContext(), e.getMessage());
+                            }
+                            Log.d(TAG, techniques[1]);
+                            break;
+                        case 2:
+                            try {
+                                facade.sendHepatitis();
+                            } catch (BluetoothException e) {
+                                MensagensToast.showMessage(getApplicationContext(), e.getMessage());
+                            }
+                            Log.d(TAG, techniques[2]);
+                            break;
                     }
                 }
             }
