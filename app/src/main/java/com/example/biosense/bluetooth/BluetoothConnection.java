@@ -36,13 +36,21 @@ public class BluetoothConnection extends Bluetooth implements Runnable {
 	private static final long TIME = 500;
 	private boolean stop = false;
 	private final Context context;
-	private JsonBaseHelper jsonHelper;
+	private String jsonData;
 
 	public BluetoothConnection(Context context, Handler handler) {
 		super(context);
 		this.context = context;
 		this.handler = handler;
-		this.jsonHelper = new JsonBaseHelper();
+		this.jsonData = "";
+	}
+
+	public String getJsonData() {
+		return this.jsonData;
+	}
+
+	public void clearJasonData() {
+		this.jsonData = "";
 	}
 
 	public void eneableConnection() {
@@ -81,15 +89,29 @@ public class BluetoothConnection extends Bluetooth implements Runnable {
 		Bundle bundle = new Bundle();
 		char[] data = this.byteToChar(dados);
 		String s = new String(data);
-		Log.d("RECEIVED: ", s);
-		// Test if it is a JSON Packet
-		if (s.contains("{") && s.contains("}")){
-			this.jsonHelper.addJsonLine(s);
-		}else{
-			bundle.putString(DADOS, s);
-			mensagem.setData(bundle);
-			handler.sendMessage(mensagem);
+		String message = "";
+		String[] packets = s.split("\n");
+
+		for (int i = 0; i < packets.length; i++) {
+
+			Log.d("RECEIVED: ", packets[i]);
+			// Test if it is a JSON Packet
+			if (packets[i].contains("{") && packets[i].contains("}")) {
+				this.jsonData += (packets[i] + "%" );
+			} else {
+				if (!packets[i].equals("\n")) {
+					if (packets[i].contains("End_Measurement")) {
+						message = packets[i];
+						break;
+					}else {
+						message += packets[i];
+					}
+				}
+			}
 		}
+		bundle.putString(DADOS, message);
+		mensagem.setData(bundle);
+		handler.sendMessage(mensagem);
 	}
 
 	private char[] byteToChar(byte[] bytes) {
@@ -155,11 +177,13 @@ public class BluetoothConnection extends Bluetooth implements Runnable {
 				inputData.close();
 				outputData.close();
 				socket.close();
+				Log.d("BluetoothConnection", "stopConnection: ");
 			}
 		} catch (IOException e) {
 			String mensagem = context.getString(R.string.bluetooth_connection_erro_fechar);
 			throw new BluetoothException(mensagem);
 		}
+
 	}
 
 	public void conectaBluetooth(BluetoothDevice device) throws BluetoothException {
