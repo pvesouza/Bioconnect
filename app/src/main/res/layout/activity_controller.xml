@@ -30,9 +30,10 @@
         android:id="@+id/button_controller_connect"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginEnd="16dp"
         android:checked="false"
-        android:textOn="Disconnect"
         android:textOff="Connect"
+        android:textOn="Disconnect"
         app:layout_constraintBottom_toBottomOf="@+id/textview_controller_btAdd"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="@+id/textview_controller_btName" />

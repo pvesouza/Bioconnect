@@ -66,7 +66,6 @@ public class BluetoothListAdapter extends RecyclerView.Adapter<BluetoothListAdap
 				myClickListener.onClick(btName, btMac);
 			}
 		});
-		Log.d("BindView", btName);
 	}
 
 	@Override

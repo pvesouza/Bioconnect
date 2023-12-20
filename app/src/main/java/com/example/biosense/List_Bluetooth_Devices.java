@@ -1,9 +1,13 @@
 package com.example.biosense;
 
 import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContract;
 import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
+import androidx.core.app.ActivityOptionsCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -11,15 +15,19 @@ import android.Manifest;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.example.biosense.bluetooth.Bluetooth;
 import com.example.biosense.bluetooth.BluetoothListAdapter;
+import com.example.biosense.bluetooth.BluetoothScanner;
 import com.example.biosense.utils.MensagensToast;
 
 import java.util.List;
@@ -29,16 +37,18 @@ public class List_Bluetooth_Devices extends AppCompatActivity {
     private RecyclerView myRecycler;
     private RecyclerView.LayoutManager recyclerManager;
     private Button scan_button;
+    private ProgressBar myProgressBar;
 
     private RecyclerView recycler_not_paired;
     private Bluetooth btHelper;
     private List<BluetoothDevice> myBtDevices;
-    private List<BluetoothDevice> notPairedDevices;
     private BluetoothListAdapter myAdapter;
 
     private BluetoothListAdapter scanAdapter;
 
     private TextView textViewTitle;
+
+    protected BluetoothScanner myScanner;
 
     protected static int REQUEST_BLUETOOTH_CONNECT = 12;
 
@@ -76,7 +86,15 @@ public class List_Bluetooth_Devices extends AppCompatActivity {
         }
     });
 
-    // Result of Bluetooth eneble request
+
+    private ActivityResultLauncher<String> scanPermissionLauncher = registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted ->{
+
+        if (isGranted) {
+            MensagensToast.showMessage(this, "Permission granted!!\nTry again");
+        }else{
+            MensagensToast.showMessage(this, "Permission not granted!!");
+        }
+    });
 
 
 
@@ -84,11 +102,15 @@ public class List_Bluetooth_Devices extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_list_bluetooth_devices);
-        this.btHelper = new Bluetooth(getApplicationContext());
-        this.myRecycler = findViewById(R.id.recycler_devices_list);
+        this.btHelper = new Bluetooth(getApplicationContext());                                     // Bluetooth Base Helper
+        this.myRecycler = findViewById(R.id.recycler_devices_list);                                 // Recycler that stores paired devices
         this.textViewTitle = findViewById(R.id.textview_list_bt_devices_title);
-        this.recycler_not_paired = findViewById(R.id.recycler_not_paired_devices_list);
-        this.scan_button = findViewById(R.id.button_scan_list_bluetooth_devices);
+        this.recycler_not_paired = findViewById(R.id.recycler_not_paired_devices_list);             // Found new bluetooth devices
+        this.scan_button = findViewById(R.id.button_scan_list_bluetooth_devices);                   // Starts a Scan for new Bluetooth devices
+        this.myScanner = new BluetoothScanner(getApplicationContext());                             // Used to SCAN for new Bluetooth devices
+        this.myProgressBar = findViewById(R.id.progressBar);
+        this.myProgressBar.setVisibility(View.GONE);
+
 
         this.recyclerManager = new LinearLayoutManager(this);
         this.myRecycler.setLayoutManager(recyclerManager);
@@ -124,13 +146,10 @@ public class List_Bluetooth_Devices extends AppCompatActivity {
                 MensagensToast.showMessage(this, "No Paired devices");
             } else {
                 this.myAdapter = new BluetoothListAdapter(getApplicationContext(), this.myBtDevices);
-                this.scanAdapter = new BluetoothListAdapter(getApplicationContext(), this.btHelper.getSurroundingDevices());
                 // Set Bluetooth item listener
                 this.myAdapter.setOnClickListener(new MyHoldListener());
-                this.scanAdapter.setOnClickListener(new MyScannedDevicesListener());
                 // Setting adapter to recycler
                 this.myRecycler.setAdapter(myAdapter);
-                this.recycler_not_paired.setAdapter(this.scanAdapter);
                 String title = getString(R.string.list_of_paired_devices);
                 title = title + ": " + this.myBtDevices.size();
                 this.textViewTitle.setText(title);
@@ -154,10 +173,24 @@ public class List_Bluetooth_Devices extends AppCompatActivity {
         }
     }
 
-    public class MyScannedDevicesListener implements BluetoothListAdapter.MyOnclickListener{
+    public class MyScanTimer implements Runnable {
 
+        public final int SCAN_TIME = 15000;
         @Override
-        public void onClick(String btName, String btAdd) {
+        public void run() {
+            // Stops discovery and reads all found bluetooth devices
+            myScanner.stopDiscovery();
+            myProgressBar.setVisibility(View.GONE);
+            List<BluetoothDevice> foundDevices =  myScanner.getMyFoundDevicesList();
+
+            if (foundDevices.size() > 0) {
+                scanAdapter = new BluetoothListAdapter(getApplicationContext(), foundDevices);
+                btHelper.setSurroundingDevices(foundDevices);
+                scanAdapter.setOnClickListener(new MyHoldListener());
+                recycler_not_paired.setAdapter(scanAdapter);
+            }else {
+                MensagensToast.showMessage(getApplicationContext(), "Devices not found");
+            }
 
         }
     }
@@ -167,7 +200,30 @@ public class List_Bluetooth_Devices extends AppCompatActivity {
         @Override
         public void onClick(View v) {
             if (btHelper.isBluetoothAvailable()) {
-                // Scan for new devices
+                String permission = Manifest.permission.BLUETOOTH_SCAN;
+                String permissionFineLocation = Manifest.permission.ACCESS_FINE_LOCATION;
+                String permissionCoarseLocation = Manifest.permission.ACCESS_COARSE_LOCATION;
+
+                if (getApplicationContext().checkSelfPermission(permission) == PackageManager.PERMISSION_GRANTED) {
+                    if (getApplicationContext().checkSelfPermission(permissionCoarseLocation) == PackageManager.PERMISSION_GRANTED) {
+                        if (getApplicationContext().checkSelfPermission(permissionFineLocation) == PackageManager.PERMISSION_GRANTED) {
+                            myScanner.startDiscovery();
+                            Handler handler = new Handler();
+                            MyScanTimer scanTimer = new MyScanTimer();
+                            handler.postDelayed(scanTimer, scanTimer.SCAN_TIME);
+                            myProgressBar.setVisibility(View.VISIBLE);
+                        }else {
+                            scanPermissionLauncher.launch(permissionFineLocation);
+                        }
+
+                    }else {
+                        scanPermissionLauncher.launch(permissionCoarseLocation);
+                    }
+
+                }else{
+                    scanPermissionLauncher.launch(permission);
+                    MensagensToast.showMessage(getApplicationContext(), "Permission not conceded");
+                }
 
             }else {
                 MensagensToast.showMessage(getApplicationContext(), "No Bluetooth Hardware Available");
