@@ -24,6 +24,8 @@ import com.example.biosense.bluetooth.Bluetooth;
 import com.example.biosense.bluetooth.BluetoothConnection;
 import com.example.biosense.bluetooth.BluetoothException;
 import com.example.biosense.bluetooth.BluetoothFacade;
+import com.example.biosense.json.JsonBaseHelper;
+import com.example.biosense.json.JsonSaveException;
 import com.example.biosense.utils.MensagensToast;
 
 import java.util.ArrayList;
@@ -84,7 +86,19 @@ public class ControllerActivity extends AppCompatActivity {
                     } else if (message.contains("Pico_NOK")){
                         MensagensToast.showMessage(getApplicationContext(), "Potentiostat Not OK!\nTry again!!");
                     }else if (message.contains("End_")) {
-                        MensagensToast.showMessage(getApplicationContext(), "End of Exam!");
+                        String data = this.myConnection.getJsonData();
+
+                        if (!data.isEmpty()) {
+                            JsonBaseHelper jsonBaseHelper = new JsonBaseHelper();
+                            try {
+                                jsonBaseHelper.saveJson(getApplicationContext(), data);
+                                this.myConnection.clearJasonData();
+                            } catch (JsonSaveException e) {
+                                MensagensToast.showMessage(getApplicationContext(), e.getMessage());
+                            }
+                            MensagensToast.showMessage(getApplicationContext(), "End of Exam!");
+                        }
+
                         commBar.setVisibility(View.GONE);
                     }else if (message.contains("Response_begin")) {
                         commBar.setVisibility(View.VISIBLE);
@@ -175,6 +189,20 @@ public class ControllerActivity extends AppCompatActivity {
 
         });
     }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        // Stops Bluetooth connection
+        Log.d(TAG, "onPause: ");
+    }
+    
+    @Override
+    public void onStop() {
+        super.onStop();
+        finish();
+        Log.d(TAG, "onStop: ");
+    }
     @Override
     public void onDestroy(){
         // Stops Bluetooth connection
@@ -183,6 +211,7 @@ public class ControllerActivity extends AppCompatActivity {
             BluetoothFacade f = new BluetoothFacade(this.myConnection);
             try {
                 f.sendDisableConnection();
+                this.myConnection.stopConnection();
             } catch (BluetoothException e) {
                 MensagensToast.showMessage(getApplicationContext(), "Connection not interrupted");
             }
@@ -208,7 +237,6 @@ public class ControllerActivity extends AppCompatActivity {
 
     // Chooses an exam in order to run
     private class RunExamListener implements View.OnClickListener{
-
         @Override
         public void onClick(View v) {
             if (isBluetoothKnown) {
