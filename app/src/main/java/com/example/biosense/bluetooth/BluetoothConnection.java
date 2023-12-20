@@ -96,9 +96,9 @@ public class BluetoothConnection extends Bluetooth implements Runnable {
 
 			Log.d("RECEIVED: ", packets[i]);
 			// Test if it is a JSON Packet
-			if (packets[i].contains("{") && packets[i].contains("}")){
-				this.jsonData += packets[i];
-			}else {
+			if (packets[i].contains("{") && packets[i].contains("}")) {
+				this.jsonData += (packets[i] + "%" );
+			} else {
 				if (!packets[i].equals("\n")) {
 					if (packets[i].contains("End_Measurement")) {
 						message = packets[i];
