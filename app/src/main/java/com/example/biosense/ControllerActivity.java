@@ -3,6 +3,7 @@ package com.example.biosense;
 import static android.view.View.GONE;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 
 
 import android.bluetooth.BluetoothDevice;
@@ -52,6 +53,8 @@ public class ControllerActivity extends AppCompatActivity {
             "D-Hepatitis"
     };
 
+    private boolean result;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -66,6 +69,12 @@ public class ControllerActivity extends AppCompatActivity {
         this.button_testPico.setVisibility(GONE);
         this.commBar = findViewById(R.id.progressBar_controller);
         this.commBar.setVisibility(GONE);
+        this.buttonStart.setClickable(false);
+        result = false;
+
+        Toolbar myToolbar = (Toolbar) findViewById(R.id.toolbar_controller_list_bt_devices);
+        myToolbar.setTitle("Bioconnect");
+        setSupportActionBar(myToolbar);
 
         // Initializes the Spinner List
         ArrayList<String> techniquesArray = new ArrayList<>(Arrays.asList(techniques));
@@ -81,6 +90,7 @@ public class ControllerActivity extends AppCompatActivity {
 
                     Log.d(TAG, message);
                     if (message.contains("Pico_OK")) {
+                        this.buttonStart.setClickable(true);
                         MensagensToast.showMessage(getApplicationContext(), "Potentiostat OK");
                         this.button_testPico.setVisibility(GONE);
                     } else if (message.contains("Pico_NOK")){
@@ -90,6 +100,15 @@ public class ControllerActivity extends AppCompatActivity {
 
                         if (!data.isEmpty()) {
                             JsonBaseHelper jsonBaseHelper = new JsonBaseHelper();
+                            if (this.result) {
+                                this.result = !this.result;
+                                this.textViewResult.setText("Positive");
+                                this.textViewResult.setBackground(this.getDrawable(R.drawable.textview_result_background_positive));
+                            }else {
+                                this.result = !this.result;
+                                this.textViewResult.setText("Negative");
+                                this.textViewResult.setBackground(this.getDrawable(R.drawable.textview_result_newgative));
+                            }
                             try {
                                 jsonBaseHelper.saveJson(getApplicationContext(), data);
                                 this.myConnection.clearJasonData();
@@ -160,12 +179,12 @@ public class ControllerActivity extends AppCompatActivity {
 
                     } catch (BluetoothException e) {
                         this.button_connect.setChecked(false);
-                        this.button_connect.setText("Connect");
+                        this.button_connect.setText("OFF");
                         MensagensToast.showMessage(getApplicationContext(), e.getMessage());
                     }
                 } else {
                     this.button_connect.setChecked(false);
-                    this.button_connect.setText("Connect");
+                    this.button_connect.setText("OFF");
                     MensagensToast.showMessage(getApplicationContext(), "Bluetooth not known!!");
                 }
 
@@ -180,7 +199,7 @@ public class ControllerActivity extends AppCompatActivity {
                             MensagensToast.showMessage(getApplicationContext(), "Conection Stopped");
                         } catch (BluetoothException e) {
                             this.button_connect.setChecked(true);
-                            this.button_connect.setText("Disconnect");
+                            this.button_connect.setText("ON");
                             MensagensToast.showMessage(getApplicationContext(), e.getMessage());
                         }
                     }

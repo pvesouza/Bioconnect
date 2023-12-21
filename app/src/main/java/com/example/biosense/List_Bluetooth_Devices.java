@@ -6,6 +6,7 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
 import androidx.core.app.ActivityOptionsCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -111,6 +112,10 @@ public class List_Bluetooth_Devices extends AppCompatActivity {
         this.myProgressBar = findViewById(R.id.progressBar);
         this.myProgressBar.setVisibility(View.GONE);
 
+        Toolbar myToolbar = (Toolbar) findViewById(R.id.toolbar_list_bt_devices);
+        myToolbar.setTitle("Bioconnect");
+        setSupportActionBar(myToolbar);
+
 
         this.recyclerManager = new LinearLayoutManager(this);
         this.myRecycler.setLayoutManager(recyclerManager);
@@ -207,6 +212,7 @@ public class List_Bluetooth_Devices extends AppCompatActivity {
                 if (getApplicationContext().checkSelfPermission(permission) == PackageManager.PERMISSION_GRANTED) {
                     if (getApplicationContext().checkSelfPermission(permissionCoarseLocation) == PackageManager.PERMISSION_GRANTED) {
                         if (getApplicationContext().checkSelfPermission(permissionFineLocation) == PackageManager.PERMISSION_GRANTED) {
+                            MensagensToast.showMessage(getApplicationContext(), "Scanning new devices");
                             myScanner.startDiscovery();
                             Handler handler = new Handler();
                             MyScanTimer scanTimer = new MyScanTimer();
