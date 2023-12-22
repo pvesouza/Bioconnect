@@ -12,6 +12,8 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.BaseAdapter;
@@ -63,7 +65,7 @@ public class ControllerActivity extends AppCompatActivity {
         this.textView_btName = findViewById(R.id.textview_controller_btName);                       // Shows the Bluetooth device name to connect
         this.button_connect = findViewById(R.id.button_controller_connect);                         // Tries to setup a connection to a Bluetooth device
         this.buttonStart = findViewById(R.id.button_controller_start);                              // Strts an Exam
-        this.textViewResult = findViewById(R.id.textView_controller_result);
+//        this.textViewResult = findViewById(R.id.textView_controller_result);
         this.spinnerTechniques = findViewById(R.id.spinner_controller_techniques);
         this.button_testPico = findViewById(R.id.button_controller_test_pico);                      // Test Emstat Pico
         this.button_testPico.setVisibility(GONE);
@@ -100,15 +102,15 @@ public class ControllerActivity extends AppCompatActivity {
 
                         if (!data.isEmpty()) {
                             JsonBaseHelper jsonBaseHelper = new JsonBaseHelper();
-                            if (this.result) {
-                                this.result = !this.result;
-                                this.textViewResult.setText("Positive");
-                                this.textViewResult.setBackground(this.getDrawable(R.drawable.textview_result_background_positive));
-                            }else {
-                                this.result = !this.result;
-                                this.textViewResult.setText("Negative");
-                                this.textViewResult.setBackground(this.getDrawable(R.drawable.textview_result_newgative));
-                            }
+//                            if (this.result) {
+//                                this.result = !this.result;
+//                                this.textViewResult.setText("Positive");
+//                                this.textViewResult.setBackground(this.getDrawable(R.drawable.textview_result_background_positive));
+//                            }else {
+//                                this.result = !this.result;
+//                                this.textViewResult.setText("Negative");
+//                                this.textViewResult.setBackground(this.getDrawable(R.drawable.textview_result_newgative));
+//                            }
                             try {
                                 jsonBaseHelper.saveJson(getApplicationContext(), data);
                                 this.myConnection.clearJasonData();
@@ -207,6 +209,40 @@ public class ControllerActivity extends AppCompatActivity {
             }
 
         });
+    }
+
+    //Creates a Menu on toolbar
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+
+        if (id == R.id.menu_controller_history) {
+            try {
+                myConnection.stopConnection();
+            } catch (BluetoothException e) {
+                MensagensToast.showMessage(getApplicationContext(), e.getMessage());
+            }
+
+            if (!myConnection.isConnectionStablished()) {
+                // Initializes History activity and finishes the current activity
+                Intent it = new Intent(getApplicationContext(), HistoryActivity.class);
+                startActivity(it);
+                finish();
+                return true;
+            }else {
+                MensagensToast.showMessage(getApplicationContext(), "Connection not stopped");
+            }
+        }else if (id == R.id.menu_controller_quit) {
+            finish();
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_controller, menu);
+        return super.onCreateOptionsMenu(menu);
     }
 
     @Override

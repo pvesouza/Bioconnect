@@ -156,19 +156,19 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
 
-    <TextView
-        android:id="@+id/textView_controller_result"
-        android:layout_width="100dp"
-        android:layout_height="100dp"
-        android:textAlignment="center"
-        android:gravity="center"
-        android:textColor="@color/white"
-        android:textSize="20sp"
-        android:background="@drawable/textview_result_newgative"
-        android:text="Result"
-        app:layout_constraintBottom_toTopOf="@+id/button_controller_start"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/view_controller_sep_1" />
+<!--    <TextView-->
+<!--        android:id="@+id/textView_controller_result"-->
+<!--        android:layout_width="100dp"-->
+<!--        android:layout_height="100dp"-->
+<!--        android:textAlignment="center"-->
+<!--        android:gravity="center"-->
+<!--        android:textColor="@color/white"-->
+<!--        android:textSize="20sp"-->
+<!--        android:background="@drawable/textview_result_newgative"-->
+<!--        android:text="Result"-->
+<!--        app:layout_constraintBottom_toTopOf="@+id/button_controller_start"-->
+<!--        app:layout_constraintEnd_toEndOf="parent"-->
+<!--        app:layout_constraintStart_toStartOf="parent"-->
+<!--        app:layout_constraintTop_toBottomOf="@+id/view_controller_sep_1" />-->
 
 </androidx.constraintlayout.widget.ConstraintLayout>
