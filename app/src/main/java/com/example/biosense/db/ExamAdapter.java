@@ -41,6 +41,10 @@ public class ExamAdapter extends RecyclerView.Adapter<ExamAdapter.ExamHolder> {
                 myClickListener.onClick(exam.getFileName());
             }
         });
+
+        if (exam.getResult() != 2) {
+            holder.getSendButton().setVisibility(View.GONE);
+        }
     }
 
     @Override
