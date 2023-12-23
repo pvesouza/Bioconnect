@@ -53,11 +53,11 @@ public class Exam {
     public String toString() {
         return String.format("Filename: %s\n" +
                 "Result: %s\n" +
-                "Technique %s\n", this.fileName, this.getResult(this.result), this.technique);
+                "Technique %s\n", this.fileName, this.getResultString(), this.technique);
     }
 
-    public String getResult(int result) {
-        switch (result) {
+    public String getResultString() {
+        switch (this.result) {
             case 0:
                 return "Neg";
             case 1:

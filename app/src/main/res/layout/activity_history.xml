@@ -25,6 +25,8 @@
         android:id="@+id/textview_history_technique_names"
         android:layout_margin="16dp"
         android:text="Select Techniques"
+        android:textColor="@color/dark_gray"
+        android:textSize="16sp"
         app:layout_constraintTop_toBottomOf="@id/toolbar_history_exams"
         app:layout_constraintStart_toStartOf="parent"/>
 
@@ -33,6 +35,8 @@
         android:layout_height="wrap_content"
         android:id="@+id/textview_history_technique_results"
         android:layout_margin="16dp"
+        android:textColor="@color/dark_gray"
+        android:textSize="16sp"
         android:text="Select Results"
         app:layout_constraintTop_toBottomOf="@id/spinner_history_technique"
         app:layout_constraintStart_toStartOf="parent"/>
@@ -42,6 +46,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_margin="16dp"
+        android:backgroundTint="@color/red_or_subtle_red"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/textview_history_technique_names"/>
 
@@ -50,6 +55,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_margin="16dp"
+        android:backgroundTint="@color/red_or_subtle_red"
         app:layout_constraintTop_toBottomOf="@id/textview_history_technique_results"
         app:layout_constraintStart_toStartOf="parent"/>
 
@@ -65,11 +71,13 @@
         app:layout_constraintTop_toBottomOf="@id/toolbar_history_exams"/>
 
     <androidx.recyclerview.widget.RecyclerView
-        android:layout_width="409dp"
-        android:layout_height="514dp"
+        android:id="@+id/recycler_history_exams"
+        android:layout_width="match_parent"
+        android:layout_height="500dp"
         android:layout_marginStart="16dp"
         android:layout_marginTop="16dp"
         android:layout_marginEnd="16dp"
+        android:background="@drawable/gradient_background"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/spinner_history_result" />
