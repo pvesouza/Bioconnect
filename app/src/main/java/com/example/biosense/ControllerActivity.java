@@ -18,6 +18,7 @@ import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.BaseAdapter;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -42,6 +43,7 @@ public class ControllerActivity extends AppCompatActivity {
     protected static final String TAG = "Controller";
     protected boolean isBluetoothKnown;
     private TextView textView_btName, textView_btAdd;
+    private EditText editText_exam_code;
     protected ToggleButton button_connect;
     protected Button button_testPico, buttonStart;
     protected Spinner spinnerTechniques;
@@ -57,6 +59,8 @@ public class ControllerActivity extends AppCompatActivity {
             "Rhodamine test",
             "D-Hepatitis"
     };
+
+    private String examCode, techniqueChoosen;
 
     private DbFacade dbFacade;
 
@@ -75,6 +79,7 @@ public class ControllerActivity extends AppCompatActivity {
         this.commBar = findViewById(R.id.progressBar_controller);
         this.commBar.setVisibility(GONE);
         this.buttonStart.setClickable(false);
+        this.editText_exam_code = findViewById(R.id.editText_exam_code);
 
         // Toolbar with Menu
         Toolbar myToolbar = (Toolbar) findViewById(R.id.toolbar_controller_list_bt_devices);
@@ -110,8 +115,8 @@ public class ControllerActivity extends AppCompatActivity {
                             JsonBaseHelper jsonBaseHelper = new JsonBaseHelper();
                             Exam exam = new Exam();
                             exam.setResult(2);
-                            exam.setExamId("");
-                            exam.setTechnique((String) spinnerTechniques.getSelectedItem());
+                            exam.setExamId(examCode);
+                            exam.setTechnique(techniqueChoosen);
 
 
 //                            if (this.result) {
@@ -320,7 +325,14 @@ public class ControllerActivity extends AppCompatActivity {
                             break;
                         case 1:
                             try {
-                                facade.sendRhodamine();
+                                techniqueChoosen = (String) spinnerTechniques.getSelectedItem();
+                                examCode = editText_exam_code.getText().toString();
+                                if (examCode.isEmpty()){
+                                    MensagensToast.showMessage(getApplicationContext(), "Type the exam code");
+                                }else {
+                                    facade.sendRhodamine();
+                                }
+
                             } catch (BluetoothException e) {
                                 MensagensToast.showMessage(getApplicationContext(), e.getMessage());
                             }
@@ -328,7 +340,14 @@ public class ControllerActivity extends AppCompatActivity {
                             break;
                         case 2:
                             try {
-                                facade.sendHepatitis();
+                                techniqueChoosen = (String) spinnerTechniques.getSelectedItem();
+                                examCode = editText_exam_code.getText().toString();
+                                if (examCode.isEmpty()){
+                                    MensagensToast.showMessage(getApplicationContext(), "Type the exam code");
+                                }else {
+                                    facade.sendHepatitis();
+                                }
+
                             } catch (BluetoothException e) {
                                 MensagensToast.showMessage(getApplicationContext(), e.getMessage());
                             }
