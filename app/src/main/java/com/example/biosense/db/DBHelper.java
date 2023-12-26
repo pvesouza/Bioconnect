@@ -5,9 +5,11 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.util.Log;
 
 public class DBHelper extends SQLiteOpenHelper {
 
+    private static final String TAG = "DataBase";
     private static DBHelper instance;
 
     // DataBase Fields
@@ -44,17 +46,20 @@ public class DBHelper extends SQLiteOpenHelper {
 
     @Override
     public void onCreate(SQLiteDatabase db) {
+        Log.d(TAG, "Create");
         db.execSQL(SQL_CREATE_ENTRIES);
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+        Log.d(TAG, "Upgrade");
         db.execSQL(SQL_DELETE_ENTRIES);
-        onCreate(db);
+        db.execSQL(SQL_CREATE_ENTRIES);
     }
 
-    // Insert a new wxam into database
+    // Insert a new Exam into database
     public long insertExamResult(Exam _exam) {
+
         if (_exam != null) {
             SQLiteDatabase db = this.getWritableDatabase();
             ContentValues values = new ContentValues();
@@ -77,7 +82,8 @@ public class DBHelper extends SQLiteOpenHelper {
                 ExamEntry.COLUMN_NAME_EXAM_CODE,
                 ExamEntry.COLUMN_NAME_TECHNIQUE,
                 ExamEntry.COLUMN_NAME_RESULT,
-                ExamEntry.COLUMN_NAME_FILENAME
+                ExamEntry.COLUMN_NAME_FILENAME,
+                ExamEntry.COLUMN_NAME_ID
         };
 
         String selection = ExamEntry.COLUMN_NAME_TECHNIQUE + " = ?";
@@ -94,7 +100,8 @@ public class DBHelper extends SQLiteOpenHelper {
                 ExamEntry.COLUMN_NAME_EXAM_CODE,
                 ExamEntry.COLUMN_NAME_TECHNIQUE,
                 ExamEntry.COLUMN_NAME_RESULT,
-                ExamEntry.COLUMN_NAME_FILENAME
+                ExamEntry.COLUMN_NAME_FILENAME,
+                ExamEntry.COLUMN_NAME_ID
         };
 
         String selection = ExamEntry.COLUMN_NAME_RESULT + " = ?";
@@ -118,7 +125,8 @@ public class DBHelper extends SQLiteOpenHelper {
                 ExamEntry.COLUMN_NAME_EXAM_CODE,
                 ExamEntry.COLUMN_NAME_TECHNIQUE,
                 ExamEntry.COLUMN_NAME_RESULT,
-                ExamEntry.COLUMN_NAME_FILENAME
+                ExamEntry.COLUMN_NAME_FILENAME,
+                ExamEntry.COLUMN_NAME_ID
         };
 
         String selection = ExamEntry.COLUMN_NAME_RESULT + " = ? AND " +
@@ -131,6 +139,29 @@ public class DBHelper extends SQLiteOpenHelper {
                 projection,
                 selection,
                 selectionArgs,
+                null,
+                null,
+                null
+        );
+    }
+
+    public Cursor getAllEntries() {
+        Log.d(TAG, "getAll");
+        SQLiteDatabase db = this.getReadableDatabase();
+
+        String[] projection = {
+                ExamEntry.COLUMN_NAME_FILENAME,
+                ExamEntry.COLUMN_NAME_EXAM_CODE,
+                ExamEntry.COLUMN_NAME_RESULT,
+                ExamEntry.COLUMN_NAME_TECHNIQUE,
+                ExamEntry.COLUMN_NAME_ID
+        };
+
+        return db.query(
+                ExamEntry.TABLE_NAME,
+                projection,
+                null,  // selection - null to retrieve all entries
+                null,  // selectionArgs - null as there's no specific condition
                 null,
                 null,
                 null
