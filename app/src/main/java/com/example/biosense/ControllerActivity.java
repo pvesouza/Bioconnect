@@ -12,10 +12,13 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.BaseAdapter;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -25,6 +28,9 @@ import com.example.biosense.bluetooth.Bluetooth;
 import com.example.biosense.bluetooth.BluetoothConnection;
 import com.example.biosense.bluetooth.BluetoothException;
 import com.example.biosense.bluetooth.BluetoothFacade;
+import com.example.biosense.db.DbExamsList;
+import com.example.biosense.db.DbFacade;
+import com.example.biosense.db.Exam;
 import com.example.biosense.json.JsonBaseHelper;
 import com.example.biosense.json.JsonSaveException;
 import com.example.biosense.utils.MensagensToast;
@@ -36,7 +42,8 @@ public class ControllerActivity extends AppCompatActivity {
 
     protected static final String TAG = "Controller";
     protected boolean isBluetoothKnown;
-    private TextView textView_btName, textView_btAdd, textViewResult;
+    private TextView textView_btName, textView_btAdd;
+    private EditText editText_exam_code;
     protected ToggleButton button_connect;
     protected Button button_testPico, buttonStart;
     protected Spinner spinnerTechniques;
@@ -49,11 +56,13 @@ public class ControllerActivity extends AppCompatActivity {
 
     private final String[] techniques = new String[] {
             "",
-            "Rhodamine test",
+            "Rhodamine",
             "D-Hepatitis"
     };
 
-    private boolean result;
+    private String examCode, techniqueChoosen;
+
+    private DbFacade dbFacade;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -63,18 +72,22 @@ public class ControllerActivity extends AppCompatActivity {
         this.textView_btName = findViewById(R.id.textview_controller_btName);                       // Shows the Bluetooth device name to connect
         this.button_connect = findViewById(R.id.button_controller_connect);                         // Tries to setup a connection to a Bluetooth device
         this.buttonStart = findViewById(R.id.button_controller_start);                              // Strts an Exam
-        this.textViewResult = findViewById(R.id.textView_controller_result);
+//        this.textViewResult = findViewById(R.id.textView_controller_result);
         this.spinnerTechniques = findViewById(R.id.spinner_controller_techniques);
         this.button_testPico = findViewById(R.id.button_controller_test_pico);                      // Test Emstat Pico
         this.button_testPico.setVisibility(GONE);
         this.commBar = findViewById(R.id.progressBar_controller);
         this.commBar.setVisibility(GONE);
         this.buttonStart.setClickable(false);
-        result = false;
+        this.editText_exam_code = findViewById(R.id.editText_exam_code);
 
+        // Toolbar with Menu
         Toolbar myToolbar = (Toolbar) findViewById(R.id.toolbar_controller_list_bt_devices);
         myToolbar.setTitle("Bioconnect");
         setSupportActionBar(myToolbar);
+
+        // Just for test inserts some exams
+        this.dbFacade = new DbFacade(getApplicationContext());
 
         // Initializes the Spinner List
         ArrayList<String> techniquesArray = new ArrayList<>(Arrays.asList(techniques));
@@ -100,17 +113,25 @@ public class ControllerActivity extends AppCompatActivity {
 
                         if (!data.isEmpty()) {
                             JsonBaseHelper jsonBaseHelper = new JsonBaseHelper();
-                            if (this.result) {
-                                this.result = !this.result;
-                                this.textViewResult.setText("Positive");
-                                this.textViewResult.setBackground(this.getDrawable(R.drawable.textview_result_background_positive));
-                            }else {
-                                this.result = !this.result;
-                                this.textViewResult.setText("Negative");
-                                this.textViewResult.setBackground(this.getDrawable(R.drawable.textview_result_newgative));
-                            }
+                            Exam exam = new Exam();
+                            exam.setResult(2);
+                            exam.setExamId(examCode);
+                            exam.setTechnique(techniqueChoosen);
+
+
+//                            if (this.result) {
+//                                this.result = !this.result;
+//                                this.textViewResult.setText("Positive");
+//                                this.textViewResult.setBackground(this.getDrawable(R.drawable.textview_result_background_positive));
+//                            }else {
+//                                this.result = !this.result;
+//                                this.textViewResult.setText("Negative");
+//                                this.textViewResult.setBackground(this.getDrawable(R.drawable.textview_result_newgative));
+//                            }
                             try {
-                                jsonBaseHelper.saveJson(getApplicationContext(), data);
+                                String filename = jsonBaseHelper.saveJson(getApplicationContext(), data);
+                                exam.setFileName(filename);
+                                dbFacade.insertExam(exam);
                                 this.myConnection.clearJasonData();
                             } catch (JsonSaveException e) {
                                 MensagensToast.showMessage(getApplicationContext(), e.getMessage());
@@ -209,6 +230,40 @@ public class ControllerActivity extends AppCompatActivity {
         });
     }
 
+    //Creates a Menu on toolbar
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+
+        if (id == R.id.menu_controller_history) {
+            try {
+                myConnection.stopConnection();
+            } catch (BluetoothException e) {
+                MensagensToast.showMessage(getApplicationContext(), e.getMessage());
+            }
+
+            if (!myConnection.isConnectionStablished()) {
+                // Initializes History activity and finishes the current activity
+                Intent it = new Intent(getApplicationContext(), HistoryActivity.class);
+                startActivity(it);
+                finish();
+                return true;
+            }else {
+                MensagensToast.showMessage(getApplicationContext(), "Connection not stopped");
+            }
+        }else if (id == R.id.menu_controller_quit) {
+            finish();
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_controller, menu);
+        return super.onCreateOptionsMenu(menu);
+    }
+
     @Override
     public void onPause() {
         super.onPause();
@@ -270,7 +325,14 @@ public class ControllerActivity extends AppCompatActivity {
                             break;
                         case 1:
                             try {
-                                facade.sendRhodamine();
+                                techniqueChoosen = (String) spinnerTechniques.getSelectedItem();
+                                examCode = editText_exam_code.getText().toString();
+                                if (examCode.isEmpty()){
+                                    MensagensToast.showMessage(getApplicationContext(), "Type the exam code");
+                                }else {
+                                    facade.sendRhodamine();
+                                }
+
                             } catch (BluetoothException e) {
                                 MensagensToast.showMessage(getApplicationContext(), e.getMessage());
                             }
@@ -278,7 +340,14 @@ public class ControllerActivity extends AppCompatActivity {
                             break;
                         case 2:
                             try {
-                                facade.sendHepatitis();
+                                techniqueChoosen = (String) spinnerTechniques.getSelectedItem();
+                                examCode = editText_exam_code.getText().toString();
+                                if (examCode.isEmpty()){
+                                    MensagensToast.showMessage(getApplicationContext(), "Type the exam code");
+                                }else {
+                                    facade.sendHepatitis();
+                                }
+
                             } catch (BluetoothException e) {
                                 MensagensToast.showMessage(getApplicationContext(), e.getMessage());
                             }
