@@ -56,7 +56,7 @@ public class ControllerActivity extends AppCompatActivity {
 
     private final String[] techniques = new String[] {
             "",
-            "Rhodamine test",
+            "Rhodamine",
             "D-Hepatitis"
     };
 
