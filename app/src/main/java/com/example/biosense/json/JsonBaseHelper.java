@@ -19,6 +19,7 @@ import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.stream.Stream;
 
 public class JsonBaseHelper {
     private File file;
@@ -41,9 +42,10 @@ public class JsonBaseHelper {
 
     }
 
-    public void saveJson(Context ctx, String data) throws JsonSaveException {
-        JSONObject jsonObject = new JSONObject();
+    public String saveJson(Context ctx, String data) throws JsonSaveException {
+//        JSONObject jsonObject = new JSONObject();
         String[] jsonReadings = data.split("%");
+        String filename = "test_" + this.getCurrentDate() + ".json";
         String jsonData = "{\n\"readings\": [\n";
 
         for (int i = 0; i < jsonReadings.length; i++) {
@@ -64,18 +66,47 @@ public class JsonBaseHelper {
 //        } catch (JSONException e) {
 //            throw new JsonSaveException("Error putting data into Json");
 //        }
-        File file = new File(ctx.getFilesDir(), "test_" + this.getCurrentDate() + ".json");
+        File file = new File(ctx.getFilesDir(), filename);
         FileWriter fileWriter = null;
         try {
             fileWriter = new FileWriter(file);
             BufferedWriter bufferedWriter = new BufferedWriter(fileWriter);
             bufferedWriter.write(jsonData);
             bufferedWriter.close();
-            Log.d(TAG, "saveJson: " + ctx.getFilesDir() + "test_" + this.getCurrentDate() + ".json");
+            Log.d(TAG, "saveJson: " + ctx.getFilesDir() + file);
+            return filename;
         } catch (IOException e) {
             throw new JsonSaveException("Error to write Json File");
         }
 
+    }
+
+    public String ReadJson(Context ctx, String filename) throws JsonSaveException {
+        StringBuilder builder = new StringBuilder();
+        File file = new File(ctx.getFilesDir(), filename);
+        if (file.exists()) {
+            try {
+                FileReader reader = new FileReader(file);
+                BufferedReader buffRead = new BufferedReader(reader);
+                String line  = buffRead.readLine();
+
+                while (line != null) {
+                    builder.append(line);
+                    builder.append("\n");
+                    line = buffRead.readLine();
+                }
+                // delete the last new line separator
+                builder.deleteCharAt(builder.length() - 1);
+                reader.close();
+
+            }catch (IOException e) {
+                throw new JsonSaveException("IO error");
+            }
+
+        }else {
+            throw new JsonSaveException("File does not exist");
+        }
+        return builder.toString();
     }
 //    public void saveJson(String data) throws JsonSaveException {
 //        JSONObject jsonObject = new JSONObject();
