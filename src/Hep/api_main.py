@@ -1,5 +1,6 @@
 from flask import Flask, make_response, jsonify, request
 from inference_hep import Hep
+from inference_rhod import Rhod
 import numpy as np
 
 app = Flask("hepatitis")
@@ -48,11 +49,14 @@ def analyse_rhod():
             c = float(sample["I"]) 
             potential.append(v)
             current.append(c)
+            
+        inference_module = Rhod("C:\\Users\\pveso\\Documents\\heart_attack_analysis\\src\\Hep\\Models\\Rhod\\cnn_rod.h5")
+        data = np.array(current).reshape(-1, 1)
+        result = inference_module.predict_sample(data)
         
-        #print(len(json_readings))
-        return make_response(jsonify(f"Rhodamine: {min(potential)}, {min(current)}, {max(potential)}, {max(current)}, {len(json_readings)}"), 200)
-    
+        return make_response(jsonify(result), 200)  
     except:
+        
         return make_response(jsonify("Error"), 500)
     
 #Start Api
