@@ -38,7 +38,7 @@ public class ExamAdapter extends RecyclerView.Adapter<ExamAdapter.ExamHolder> {
 
         holder.getSendButton().setOnClickListener(v -> {
             if (myClickListener != null) {
-                myClickListener.onClick(exam.getFileName());
+                myClickListener.onClick(exam.getFileName(), exam.getTechnique());
             }
         });
 
@@ -57,7 +57,7 @@ public class ExamAdapter extends RecyclerView.Adapter<ExamAdapter.ExamHolder> {
     }
 
     public interface MyOnclickAnalise {
-        public void onClick(String fileName);
+        public void onClick(String fileName, String technique);
     }
 
     public class ExamHolder extends RecyclerView.ViewHolder {

@@ -6,12 +6,15 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.Spinner;
 
+import com.example.biosense.api.NetworkApiAccess;
+import com.example.biosense.api.NetworkException;
 import com.example.biosense.db.DBHelper;
 import com.example.biosense.db.DbExamsList;
 import com.example.biosense.db.DbFacade;
@@ -48,9 +51,7 @@ public class HistoryActivity extends AppCompatActivity {
 
     private DbFacade myDbFacade;
 
-    private String filepath;
-
-    private static boolean inserted = false;
+    private Handler connectionHandler;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -93,18 +94,41 @@ public class HistoryActivity extends AppCompatActivity {
         this.searchButton = findViewById(R.id.button_history_search);
         this.searchButton.setOnClickListener(new SearchOnDatabase());
 
-        this.filepath = String.valueOf(getFilesDir());
+        this.connectionHandler = new Handler(m->{
+            Bundle b = m.getData();
+            if (b != null) {
+                String result = b.getString("RESULT");
+                if (!result.isEmpty()) {
+                    // Update the result in the database
+                    Log.d(TAG, result);
+                }
+            }
+            return false;
+        });
 
     }
 
     private class SearchListener implements ExamAdapter.MyOnclickAnalise {
 
         @Override
-        public void onClick(String fileName) {
+        public void onClick(String fileName, String technique) {
+
             JsonBaseHelper jsonHelper = new JsonBaseHelper();
+
             try {
+
                 String jsonPacket = jsonHelper.ReadJson(getApplicationContext(), fileName);
-                Log.d(TAG, jsonPacket);
+                NetworkApiAccess myApi = new NetworkApiAccess(connectionHandler, getApplicationContext());
+//                String result = "SR";
+                if (technique.equals("Rhodamine")) {
+                    myApi.startHttpPost(jsonPacket, "rhod");
+                }else if (technique.equals("D-Hepatitis")) {
+                    myApi.startHttpPost(jsonPacket, "hep");
+                }
+
+//                Log.d(TAG, jsonPacket);
+//                Log.d(TAG, result);
+
             } catch (JsonSaveException e) {
                 MensagensToast.showMessage(getApplicationContext(), e.getMessage());
             }
