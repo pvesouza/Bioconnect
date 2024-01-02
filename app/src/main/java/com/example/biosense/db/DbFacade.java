@@ -136,4 +136,9 @@ public class DbFacade {
 
         return list;
     }
+
+    public int updateExam(long id, int status) {
+        return this.myHelper.updateResult(id, status);
+    }
+
 }
