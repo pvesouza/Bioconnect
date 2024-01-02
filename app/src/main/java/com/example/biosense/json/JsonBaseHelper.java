@@ -82,22 +82,29 @@ public class JsonBaseHelper {
     }
 
     public String ReadJson(Context ctx, String filename) throws JsonSaveException {
+
         StringBuilder builder = new StringBuilder();
         File file = new File(ctx.getFilesDir(), filename);
+
         if (file.exists()) {
+            int linesSum = 0;
+
             try {
                 FileReader reader = new FileReader(file);
                 BufferedReader buffRead = new BufferedReader(reader);
                 String line  = buffRead.readLine();
 
                 while (line != null) {
+                    linesSum += 1;
                     builder.append(line);
                     builder.append("\n");
                     line = buffRead.readLine();
                 }
+                Log.d(TAG, String.valueOf(linesSum));
                 // delete the last new line separator
                 builder.deleteCharAt(builder.length() - 1);
                 reader.close();
+                return builder.toString();
 
             }catch (IOException e) {
                 throw new JsonSaveException("IO error");
@@ -106,7 +113,6 @@ public class JsonBaseHelper {
         }else {
             throw new JsonSaveException("File does not exist");
         }
-        return builder.toString();
     }
 //    public void saveJson(String data) throws JsonSaveException {
 //        JSONObject jsonObject = new JSONObject();

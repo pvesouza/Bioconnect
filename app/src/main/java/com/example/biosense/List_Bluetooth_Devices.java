@@ -21,6 +21,8 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ProgressBar;
@@ -163,6 +165,29 @@ public class List_Bluetooth_Devices extends AppCompatActivity {
         }else{
             MensagensToast.showMessage(getApplicationContext(), "Permission not granted");
         }
+    }
+
+    //Creates a Menu on toolbar
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+
+        if (id == R.id.menu_controller_history) {
+            // Initializes History activity and finishes the current activity
+            Intent it = new Intent(getApplicationContext(), HistoryActivity.class);
+            startActivity(it);
+            finish();
+        }else if (id == R.id.menu_controller_quit) {
+            finish();
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_controller, menu);
+        return super.onCreateOptionsMenu(menu);
     }
 
     public class MyHoldListener implements BluetoothListAdapter.MyOnclickListener {
