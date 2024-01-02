@@ -47,6 +47,7 @@
         android:layout_height="wrap_content"
         android:layout_margin="16dp"
         android:backgroundTint="@color/red_or_subtle_red"
+        android:popupBackground="@color/light_gray_with_green_accent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/textview_history_technique_names"/>
 
@@ -55,6 +56,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_margin="16dp"
+        android:popupBackground="@color/light_gray_with_green_accent"
         android:backgroundTint="@color/red_or_subtle_red"
         app:layout_constraintTop_toBottomOf="@id/textview_history_technique_results"
         app:layout_constraintStart_toStartOf="parent"/>

@@ -120,6 +120,7 @@ public class DBHelper extends SQLiteOpenHelper {
 
     public Cursor getResultsByStatusAndTechnique(int _status, String _technique) {
         SQLiteDatabase db = this.getWritableDatabase();
+        Log.d(TAG, _technique + ": " + _status);
 
         String[] projection = {
                 ExamEntry.COLUMN_NAME_EXAM_CODE,
@@ -130,7 +131,7 @@ public class DBHelper extends SQLiteOpenHelper {
         };
 
         String selection = ExamEntry.COLUMN_NAME_RESULT + " = ? AND " +
-                ExamEntry.COLUMN_NAME_TECHNIQUE + "= ?";
+                ExamEntry.COLUMN_NAME_TECHNIQUE + " = ?";
 
         String[] selectionArgs = { String.valueOf(_status), _technique };
 
@@ -166,5 +167,19 @@ public class DBHelper extends SQLiteOpenHelper {
                 null,
                 null
         );
+    }
+
+    public int updateResult(long id, int status) {
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        ContentValues values = new ContentValues();
+        values.put(ExamEntry.COLUMN_NAME_RESULT, status);
+
+        String selection = ExamEntry.COLUMN_NAME_ID + " = ?";
+        String[] selectionArgs = {String.valueOf(id)};
+
+        int count = db.update(ExamEntry.TABLE_NAME, values, selection, selectionArgs);
+        db.close();
+        return count;
     }
 }

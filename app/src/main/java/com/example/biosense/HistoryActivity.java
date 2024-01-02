@@ -36,6 +36,8 @@ public class HistoryActivity extends AppCompatActivity {
 
     private Button searchButton;
 
+    private long examToUpdateId;                                        // Exam to update in case od success
+
     private ExamAdapter examAdapter;
 
     private Spinner spinnerTechnique, spinnerResult;
@@ -78,18 +80,20 @@ public class HistoryActivity extends AppCompatActivity {
 
         this.recycler = findViewById(R.id.recycler_history_exams);
         this.layoutManager = new LinearLayoutManager(this);
+        this.recycler.setLayoutManager(this.layoutManager);
+//        this.recycler.setAdapter(this.examAdapter);
 
-        List<Exam> myExams = this.myDbFacade.getExams();
-
-        if (myExams.size() > 0) {
-            this.examAdapter = new ExamAdapter(myExams);
-            this.examAdapter.setMyClickListener(new SearchListener());
-            // Exams historic
-            this.recycler.setLayoutManager(this.layoutManager);
-            this.recycler.setAdapter(this.examAdapter);
-        }else {
-            MensagensToast.showMessage(getApplicationContext(), "List empty");
-        }
+//        List<Exam> myExams = this.myDbFacade.getExams();
+//
+//        if (myExams.size() > 0) {
+//            this.examAdapter = new ExamAdapter(myExams);
+//            this.examAdapter.setMyClickListener(new SearchListener());
+//            // Exams historic
+//            this.recycler.setLayoutManager(this.layoutManager);
+//            this.recycler.setAdapter(this.examAdapter);
+//        }else {
+//            MensagensToast.showMessage(getApplicationContext(), "List empty");
+//        }
 
         this.searchButton = findViewById(R.id.button_history_search);
         this.searchButton.setOnClickListener(new SearchOnDatabase());
@@ -99,21 +103,41 @@ public class HistoryActivity extends AppCompatActivity {
             if (b != null) {
                 String result = b.getString("RESULT");
                 if (!result.isEmpty()) {
+
                     // Update the result in the database
+                    int _result = 2;
+                    if (result.equals("Positive")) {
+                        _result = 1;
+                    }else if (result.equals("Negative")) {
+                        _result = 0;
+                    }
+                    // Update result
+                    int r = myDbFacade.updateExam(examToUpdateId, _result);
+
+                    if (r == 0) {
+                        MensagensToast.showMessage(getApplicationContext(), "Update not done");
+                    }else {
+                        updateExamsListView();
+                        MensagensToast.showMessage(getApplicationContext(), "Update done");
+                    }
+
                     Log.d(TAG, result);
+                    Log.d(TAG, String.valueOf(examToUpdateId));
+                }else {
+                    MensagensToast.showMessage(getApplicationContext(), "Fail obtaining response");
                 }
             }
             return false;
         });
-
     }
 
     private class SearchListener implements ExamAdapter.MyOnclickAnalise {
 
         @Override
-        public void onClick(String fileName, String technique) {
+        public void onClick(String fileName, String technique, long id) {
 
             JsonBaseHelper jsonHelper = new JsonBaseHelper();
+            examToUpdateId = id;
 
             try {
 
@@ -125,7 +149,6 @@ public class HistoryActivity extends AppCompatActivity {
                 }else if (technique.equals("D-Hepatitis")) {
                     myApi.startHttpPost(jsonPacket, "hep");
                 }
-
 //                Log.d(TAG, jsonPacket);
 //                Log.d(TAG, result);
 
@@ -139,17 +162,21 @@ public class HistoryActivity extends AppCompatActivity {
 
         @Override
         public void onClick(View v) {
-            String technique = (String) spinnerTechnique.getSelectedItem();
-            int result = spinnerResult.getSelectedItemPosition();
-
-            List<Exam> list = myDbFacade.getExams(technique, result);
-            if (list.size() == 0) {
-                MensagensToast.showMessage(getApplicationContext(), "List is empty");
-            }else {
-                examAdapter = new ExamAdapter(list);
-                examAdapter.setMyClickListener(new SearchListener());
-                recycler.setAdapter(examAdapter);
-            }
+            updateExamsListView();
         }
+    }
+
+    private void updateExamsListView() {
+        String technique = (String) spinnerTechnique.getSelectedItem();
+        int result = spinnerResult.getSelectedItemPosition();
+
+        List<Exam> list = myDbFacade.getExams(technique, result);
+
+        if (list.size() == 0) {
+            MensagensToast.showMessage(getApplicationContext(), "List is empty");
+        }
+        examAdapter = new ExamAdapter(list);
+        examAdapter.setMyClickListener(new SearchListener());
+        recycler.setAdapter(examAdapter);
     }
 }
