@@ -110,6 +110,9 @@ public class HistoryActivity extends AppCompatActivity {
                         _result = 1;
                     }else if (result.equals("Negative")) {
                         _result = 0;
+                    }else{
+                        MensagensToast.showMessage(getApplicationContext(), result);
+                        return false;
                     }
                     // Update result
                     int r = myDbFacade.updateExam(examToUpdateId, _result);
@@ -120,6 +123,8 @@ public class HistoryActivity extends AppCompatActivity {
                         updateExamsListView();
                         MensagensToast.showMessage(getApplicationContext(), "Update done");
                     }
+
+                    MensagensToast.showMessage(getApplicationContext(), result);
 
                     Log.d(TAG, result);
                     Log.d(TAG, String.valueOf(examToUpdateId));

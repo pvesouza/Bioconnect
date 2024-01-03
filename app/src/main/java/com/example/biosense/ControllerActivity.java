@@ -2,6 +2,7 @@ package com.example.biosense;
 
 import static android.view.View.GONE;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
@@ -11,6 +12,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
+import android.os.Message;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -24,6 +26,7 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.ToggleButton;
 
+import com.example.biosense.api.NetworkApiAccess;
 import com.example.biosense.bluetooth.Bluetooth;
 import com.example.biosense.bluetooth.BluetoothConnection;
 import com.example.biosense.bluetooth.BluetoothException;
@@ -50,6 +53,12 @@ public class ControllerActivity extends AppCompatActivity {
     protected BluetoothConnection myConnection;
     private ProgressBar commBar;
 
+    private TextView textViewResult;
+
+    private NetworkApiAccess myApiConnection;
+    private long savedExamId;
+    private Handler netWorkApiHandler;
+
     protected BluetoothDevice deviceToConnect;
 
     protected Handler myHandler;
@@ -72,7 +81,7 @@ public class ControllerActivity extends AppCompatActivity {
         this.textView_btName = findViewById(R.id.textview_controller_btName);                       // Shows the Bluetooth device name to connect
         this.button_connect = findViewById(R.id.button_controller_connect);                         // Tries to setup a connection to a Bluetooth device
         this.buttonStart = findViewById(R.id.button_controller_start);                              // Strts an Exam
-//        this.textViewResult = findViewById(R.id.textView_controller_result);
+        this.textViewResult = findViewById(R.id.textView_controller_result);
         this.spinnerTechniques = findViewById(R.id.spinner_controller_techniques);
         this.button_testPico = findViewById(R.id.button_controller_test_pico);                      // Test Emstat Pico
         this.button_testPico.setVisibility(GONE);
@@ -93,6 +102,61 @@ public class ControllerActivity extends AppCompatActivity {
         ArrayList<String> techniquesArray = new ArrayList<>(Arrays.asList(techniques));
         ArrayAdapter<String> spinnerAdapter = new ArrayAdapter<>(getApplicationContext(), android.R.layout.simple_spinner_dropdown_item, techniquesArray);
         this.spinnerTechniques.setAdapter(spinnerAdapter);
+
+//        Handles connection with Api
+        this.netWorkApiHandler = new Handler(new Handler.Callback() {
+            @Override
+            public boolean handleMessage(@NonNull Message msg) {
+                Bundle b = msg.getData();
+                if (b != null) {
+                    String result = b.getString("RESULT");
+                    if (!result.isEmpty()) {
+
+                        // Update the result in the database
+                        int _result = 2;
+                        if (result.equals("Positive")) {
+                            _result = 1;
+                            textViewResult.setText("Positive");
+                            textViewResult.setBackground(getDrawable(R.drawable.textview_result_background_positive));
+                            // Update result
+                            int r = dbFacade.updateExam(savedExamId, _result);
+
+                            if (r == 0) {
+                                MensagensToast.showMessage(getApplicationContext(), "Update not done");
+                            }else {
+
+                                MensagensToast.showMessage(getApplicationContext(), "Update done");
+                            }
+
+                        }else if (result.equals("Negative")) {
+                            textViewResult.setText("Negative");
+                            textViewResult.setBackground(getDrawable(R.drawable.textview_result_newgative));
+                            _result = 0;
+                            // Update result
+                            int r = dbFacade.updateExam(savedExamId, _result);
+
+                            if (r == 0) {
+                                MensagensToast.showMessage(getApplicationContext(), "Update not done");
+                            }else {
+
+                                MensagensToast.showMessage(getApplicationContext(), "Update done");
+                            }
+                        }else {
+                            textViewResult.setText("");
+                            MensagensToast.showMessage(getApplicationContext(), "Fail communication");
+                        }
+
+                        Log.d(TAG, result);
+                        Log.d(TAG, String.valueOf(savedExamId));
+                    }else {
+                        MensagensToast.showMessage(getApplicationContext(), "Fail obtaining response");
+                    }
+                }
+                return false;
+            }
+        });
+
+        this.myApiConnection = new NetworkApiAccess(this.netWorkApiHandler, getApplicationContext());
 
         // This handles all Bluetooth messages
         this.myHandler = new Handler(m -> {
@@ -131,8 +195,17 @@ public class ControllerActivity extends AppCompatActivity {
                             try {
                                 String filename = jsonBaseHelper.saveJson(getApplicationContext(), data);
                                 exam.setFileName(filename);
-                                dbFacade.insertExam(exam);
+                                this.savedExamId = dbFacade.insertExam(exam);
                                 this.myConnection.clearJasonData();
+                                String jsonData = jsonBaseHelper.ReadJson(getBaseContext(), filename);
+                                NetworkApiAccess apiThread = new NetworkApiAccess(this.netWorkApiHandler, getBaseContext());
+                                // Send Http request to api
+                                if (techniqueChoosen.equals(techniques[1])) {
+                                    apiThread.startHttpPost(jsonData, "rhod");
+                                }else if (techniqueChoosen.equals(techniques[2])) {
+                                    apiThread.startHttpPost(jsonData, "hep");
+                                }
+
                             } catch (JsonSaveException e) {
                                 MensagensToast.showMessage(getApplicationContext(), e.getMessage());
                             }
