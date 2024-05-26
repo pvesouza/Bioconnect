@@ -10,9 +10,10 @@ import json
 
 class Hep:
     
+    # Loads The model and Json
     def __init__(self):
-        self.scaler = joblib.load("C:\\Users\\pveso\\Documents\\heart_attack_analysis\\src\\Hep\\Models\\scaler.pkl")
-        self.classifier = joblib.load("C:\\Users\\pveso\\Documents\\heart_attack_analysis\\src\\Hep\\Models\\hep_tree.pkl")
+        self.scaler = joblib.load("Models\scaler.pkl")
+        self.classifier = joblib.load("Models\logistic.pkl")
         
     def getJsonFromFile(self, path):
         with open(path, 'r') as f:
@@ -28,40 +29,63 @@ class Hep:
            X = self.scaler.transform(data)
            return X
        
-    def transformFourier(self, current):
+    def transformFourier(self, current, potential):
+        # Calculando o tempo
+        Ei = potential[0]
+        Ef = potential[len(potential) - 1]
+        Sr = 0.01      
+        # Number of sample points
+        N = len(potential)
+        T = (Ef - Ei) / Sr
+        t = np.linspace(0, T, N)
+        dt = np.diff(t)[0]
+        print(f'Tempo total = {T} s')
+        print(f'Number of Samples = {N} s')
+        print(f'E inicial = {Ei} s')
+        print(f'E final = {Ef} s')
+        print(f'dt = {dt}')
+        fft_signal = fft(current)
+        return (2.0/N * np.abs(fft_signal))
+    
+    def calc_signal_energy(self,x):
+        rows, cols = x.shape
+        energies = np.zeros(shape = (cols,), dtype=np.float32)
+        
+        for c in range(cols):
+            sum = 0.
+            for i in range(rows):
+                v = x[i,c]
+                sum += v * v
+            sum = sum / rows
+            energies[c] = sum
+        return energies
+        
+    def getFeatures(self, current_fft, potential):
+        
+        if (len(current_fft) == 0 or len(potential) == 0):
+            return None
+        else:
+            
+            # Normalizando o sinal pela linha de base
+            norm_current = (current_fft - np.min(current_fft, axis=0))
+            # Caculando a área sob a curva
+            area = np.trapz(norm_current, axis = 0)
+            fft_signal = self.transformFourier(norm_current)
+            
+            # Extração de features baseada no domínio do tempo
+            mean = norm_current.mean(axis=0)
+            std = norm_current.std(axis = 0)
+            max_ = norm_current.max(axis = 0)
+            energy = self.calc_signal_energy(norm_current)
+            freq_pos_mean = fft_signal.mean(axis = 0)
+            dc = fft_signal[0]            
+            return self.scale_data(np.array([mean, std, max_, energy, freq_pos_mean, area, dc_]).reshape(1, -1))
+        
+    def predict_data(self, current, potential):
         if (len(current) == 0):
             return None
         else:
-            N = current.shape[0]
-            fft_signal = fft(current)
-            return (2.0/N * np.abs(fft_signal[0:N//2]))
-        
-    def getFeatures(self, current_fft):
-        
-        if (len(current_fft) == 0):
-            return None
-        else:
-            fft_signal = self.transformFourier(current_fft)
-            df = pd.DataFrame(fft_signal)
-            descriptive = df.describe()
-            #print(descriptive)
-            mean = float(descriptive.iloc[1])
-            std = float(descriptive.iloc[2])
-            min_ = float(descriptive.iloc[3])
-            max_ = float(descriptive.iloc[7])
-            percentile_25 = float(descriptive.iloc[4])
-            percentile_50 = float(descriptive.iloc[5])
-            percentile_75 = float(descriptive.iloc[6])
-            #print("Features")
-            #print([mean, std, min_, percentile_25, percentile_50, percentile_75, max_])
-            #print(self.scale_data([mean, std, min_, percentile_25, percentile_50, percentile_75, max_]))
-            return self.scale_data(np.array([mean, std, min_, percentile_25, percentile_50, percentile_75, max_]).reshape(1, -1))
-        
-    def predict_data(self, current):
-        if (len(current) == 0):
-            return None
-        else:
-            features = self.getFeatures(current)
+            features = self.getFeatures(current, potential)
             result = int(self.classifier.predict(features))
             #print(f"Result: {result}")
             return result

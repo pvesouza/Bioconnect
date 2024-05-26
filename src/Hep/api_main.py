@@ -29,10 +29,13 @@ def analyse_hep():
             current.append(c)
             #print(v,c)
         
-        hep_analysis = Hep()
-        result = hep_analysis.predict_data(np.array(current))
+        del potential[0:11]
+        del current[0:11]
         
-        #print(result)
+        hep_analysis = Hep()
+               
+        result = hep_analysis.predict_data(np.array(current), np.array(potential))
+        
         return make_response(jsonify(result), 200)
     
     except:
@@ -83,4 +86,6 @@ def analyse_rhod():
         return make_response(jsonify("Error"), 500)
     
 #Start Api
-app.run(host="192.168.0.122")
+#app.run(host="192.168.0.122")
+if __name__ == '__main__':
+    app.run(debug=True)
