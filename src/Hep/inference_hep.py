@@ -1,7 +1,7 @@
 # Imports for inference module
 from sklearn.preprocessing import StandardScaler
 import matplotlib.pyplot as plt
-import joblib
+from joblib import load
 import numpy as np
 import pandas as pd
 from scipy.fft import fft
@@ -12,13 +12,21 @@ class Hep:
     
     # Loads The model and Json
     def __init__(self):
-        self.scaler = joblib.load("Models\scaler.pkl")
-        self.classifier = joblib.load("Models\logistic.pkl")
+        #path_scaler = 'src\Hep\std_scaler.bin'
+        #path_model = 'src\Hep\Models\logistic.pkl'
+        path_scaler = 'C:\\Users\\pveso\\Documents\\heart_attack_analysis\\src\\Hep\\Models\\logistic.pkl'
+        path_model = 'C:\\Users\\pveso\\Documents\\heart_attack_analysis\\src\\Hep\\std_scaler.bin'
+        self.scaler = load(path_scaler)
+        self.classifier = load(path_model)
+        print("Hepatitis module Initialized")
         
     def getJsonFromFile(self, path):
         with open(path, 'r') as f:
             json_data = json.load(f)
             return json_data
+        
+    def calc_iqr(self, current):
+        return np.percentile(current, 75, axis = 0) - np.percentile(current, 25, axis = 0)
         
     def scale_data(self, data):
         
@@ -48,17 +56,7 @@ class Hep:
         return (2.0/N * np.abs(fft_signal))
     
     def calc_signal_energy(self,x):
-        rows, cols = x.shape
-        energies = np.zeros(shape = (cols,), dtype=np.float32)
-        
-        for c in range(cols):
-            sum = 0.
-            for i in range(rows):
-                v = x[i,c]
-                sum += v * v
-            sum = sum / rows
-            energies[c] = sum
-        return energies
+        return np.sum(np.abs(x)**2)
         
     def getFeatures(self, current_fft, potential):
         
@@ -70,7 +68,7 @@ class Hep:
             norm_current = (current_fft - np.min(current_fft, axis=0))
             # Caculando a área sob a curva
             area = np.trapz(norm_current, axis = 0)
-            fft_signal = self.transformFourier(norm_current)
+            fft_signal = self.transformFourier(norm_current, potential)
             
             # Extração de features baseada no domínio do tempo
             mean = norm_current.mean(axis=0)
@@ -78,8 +76,9 @@ class Hep:
             max_ = norm_current.max(axis = 0)
             energy = self.calc_signal_energy(norm_current)
             freq_pos_mean = fft_signal.mean(axis = 0)
-            dc = fft_signal[0]            
-            return self.scale_data(np.array([mean, std, max_, energy, freq_pos_mean, area, dc_]).reshape(1, -1))
+            dc_ = fft_signal[0] 
+            iqr = self.calc_iqr(norm_current)         
+            return self.scale_data(np.array([mean, std, max_, energy, iqr, freq_pos_mean, area, dc_]).reshape(1, -1))
         
     def predict_data(self, current, potential):
         if (len(current) == 0):
@@ -87,6 +86,6 @@ class Hep:
         else:
             features = self.getFeatures(current, potential)
             result = int(self.classifier.predict(features))
-            #print(f"Result: {result}")
+            print(f"Result: {result}")
             return result
                 

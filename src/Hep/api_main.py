@@ -7,7 +7,7 @@ import numpy as np
 app = Flask("hepatitis")
 
 #Test Api
-@app.route('/test', methods=['GET'])
+@app.route('/', methods=['GET'])
 def test_api():
     return make_response(jsonify("Hepatitis test"))
 
@@ -29,15 +29,18 @@ def analyse_hep():
             current.append(c)
             #print(v,c)
         
-        del potential[0:11]
-        del current[0:11]
+        #del potential[0:11]
+        #del current[0:11]
         
         hep_analysis = Hep()
                
-        result = hep_analysis.predict_data(np.array(current), np.array(potential))
+        result = hep_analysis.predict_data(np.array(current).astype(float), np.array(potential).astype(float))
         
-        return make_response(jsonify(result), 200)
-    
+        if (result != None):
+            return make_response(jsonify(result), 200)
+        else:
+            print("Error!!!")
+            return make_response(jsonify("Error"), 400)
     except:
         return make_response(jsonify("Error"), 500)
 
@@ -88,4 +91,4 @@ def analyse_rhod():
 #Start Api
 #app.run(host="192.168.0.122")
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run("192.168.0.122", port=5000)
