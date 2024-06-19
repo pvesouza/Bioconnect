@@ -5,6 +5,7 @@ from scipy.signal  import resample
 import numpy as np
 
 app = Flask("hepatitis")
+hep_analysis = Hep()
 
 #Test Api
 @app.route('/', methods=['GET'])
@@ -23,18 +24,16 @@ def analyse_hep():
         
         for i in range(len(json_readings)):
             sample = json_readings[i]
-            v = np.float32(sample["V"])
-            c = np.float32(sample["I"])
+            v = float(sample["V"])
+            c = float(sample["I"])
             potential.append(v)
             current.append(c)
             #print(v,c)
         
-        #del potential[0:11]
-        #del current[0:11]
-        
-        hep_analysis = Hep()
+        del potential[0:11]
+        del current[0:11]
                
-        result = hep_analysis.predict_data(np.array(current).astype(float), np.array(potential).astype(float))
+        result = hep_analysis.predict_data(np.array(current, dtype=float), np.array(potential, dtype=float))
         
         if (result != None):
             return make_response(jsonify(result), 200)
@@ -91,4 +90,5 @@ def analyse_rhod():
 #Start Api
 #app.run(host="192.168.0.122")
 if __name__ == '__main__':
-    app.run("192.168.0.122", port=5000)
+    app.run("0.0.0.0", port=5000)
+       

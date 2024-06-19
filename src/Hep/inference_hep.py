@@ -14,8 +14,8 @@ class Hep:
     def __init__(self):
         #path_scaler = 'src\Hep\std_scaler.bin'
         #path_model = 'src\Hep\Models\logistic.pkl'
-        path_scaler = 'C:\\Users\\pveso\\Documents\\heart_attack_analysis\\src\\Hep\\Models\\logistic.pkl'
-        path_model = 'C:\\Users\\pveso\\Documents\\heart_attack_analysis\\src\\Hep\\std_scaler.bin'
+        path_model = 'C:\\Users\\pveso\\Documents\\heart_attack_analysis\\src\\Hep\\Models\\logistic.pkl'
+        path_scaler = 'C:\\Users\\pveso\\Documents\\heart_attack_analysis\\src\\Hep\\std_scaler.bin'
         self.scaler = load(path_scaler)
         self.classifier = load(path_model)
         print("Hepatitis module Initialized")
@@ -47,16 +47,16 @@ class Hep:
         T = (Ef - Ei) / Sr
         t = np.linspace(0, T, N)
         dt = np.diff(t)[0]
-        print(f'Tempo total = {T} s')
-        print(f'Number of Samples = {N} s')
-        print(f'E inicial = {Ei} s')
-        print(f'E final = {Ef} s')
-        print(f'dt = {dt}')
+        #print(f'Tempo total = {T} s')
+        #print(f'Number of Samples = {N} s')
+        #print(f'E inicial = {Ei} s')
+        #print(f'E final = {Ef} s')
+        #print(f'dt = {dt}')
         fft_signal = fft(current)
-        return (2.0/N * np.abs(fft_signal))
+        return ((2.0/N) * np.abs(fft_signal))
     
     def calc_signal_energy(self,x):
-        return np.sum(np.abs(x)**2)
+        return (np.sum(np.abs(x)**2)/len(x))
         
     def getFeatures(self, current_fft, potential):
         
@@ -85,7 +85,6 @@ class Hep:
             return None
         else:
             features = self.getFeatures(current, potential)
-            result = int(self.classifier.predict(features))
-            print(f"Result: {result}")
+            result = float(self.classifier.predict(features))
             return result
                 
