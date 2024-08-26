@@ -27,7 +27,7 @@ void SerialPortReader::handleReadyRead()
     if (dataRead.size() != 0) {
         readData.append(dataRead);
         if (!timer.isActive()) {
-            timer.start(100);
+            timer.start(20);
         }
     }
 }

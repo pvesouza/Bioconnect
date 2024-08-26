@@ -18,7 +18,7 @@ MainWindow::MainWindow(QWidget *parent)
     // Initialize Api
     myNetworkApi = new ApiFacade();
     // Initialize Database Facade
-    myDbFacade = new DbFacade();
+//    myDbFacade = new DbFacade();
 
     // Initialize Analysis list
     for (int i = 0; i < listOfAnalysis.size(); i++)
@@ -37,11 +37,11 @@ MainWindow::MainWindow(QWidget *parent)
 
 
     init_chart();
-    if (this->myDbFacade->open()){
-        qDebug() << "DB Opened";
-    }else{
-       qDebug() << "DB not Opened";
-    }
+//    if (this->myDbFacade->open()){
+//        qDebug() << "DB Opened";
+//    }else{
+//       qDebug() << "DB not Opened";
+//    }
 }
 
 MainWindow::~MainWindow()
@@ -188,7 +188,7 @@ void MainWindow::jsonline_received(QString line)
      currQueue->enqueue(current);
      potQueue->enqueue(potential);
      plot = true;
-     timer->start(10);
+     timer->start(2);
 }
 
 void MainWindow::handle_chart_update()
@@ -329,9 +329,9 @@ void MainWindow::add_series()
         QPen pen = series->pen();
         // Gerando a cor da serie
 
-        int randomR = QRandomGenerator::global()->bounded(0, 173);
-        int randomG = QRandomGenerator::global()->bounded(0, 205);
-        int randomB = QRandomGenerator::global()->bounded(100, 255);
+        int randomR = QRandomGenerator::global()->bounded(0, 200);
+        int randomG = QRandomGenerator::global()->bounded(0, 255);
+        int randomB = QRandomGenerator::global()->bounded(0, 255);
 
         QColor brushColor = QColor(randomR ,randomG, randomB);
 
@@ -393,11 +393,11 @@ void MainWindow::fileSaved(QString filename)
     if (technique == "Cyclic")
     {
         // Save in DB (table cyclic)the filename and label
-        this->myDbFacade->insert_values(byte_measures, label, false);
+//        this->myDbFacade->insert_values(byte_measures, label, false);
     }else if (technique == "PDV")
     {
         // Save in DB (table pdv)the filename and label
-         this->myDbFacade->insert_values(byte_measures, label, true);
+//         this->myDbFacade->insert_values(byte_measures, label, true);
     }
 }
 
