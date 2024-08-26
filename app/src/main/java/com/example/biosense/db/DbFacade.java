@@ -24,9 +24,10 @@ public class DbFacade {
         }
     }
 
-    public void insertExam(Exam e) {
+    public long insertExam(Exam e) {
         long i = this.myHelper.insertExamResult(e);
         Log.d(TAG, String.valueOf(i));
+        return i;
     }
     
     public List<Exam> getExams(String technique) {
