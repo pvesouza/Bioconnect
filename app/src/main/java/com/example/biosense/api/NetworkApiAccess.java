@@ -69,7 +69,6 @@ public class NetworkApiAccess extends Thread {
         this.json = json;
 
         this.start();
-
     }
 
     public String sendJsonPacket(String json, String endpoint) throws NetworkException {
