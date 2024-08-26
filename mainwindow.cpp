@@ -18,7 +18,7 @@ MainWindow::MainWindow(QWidget *parent)
     // Initialize Api
     myNetworkApi = new ApiFacade();
     // Initialize Database Facade
-    myDbFacade = new DbFacade();
+//    myDbFacade = new DbFacade();
 
     // Initialize Analysis list
     for (int i = 0; i < listOfAnalysis.size(); i++)
@@ -37,11 +37,11 @@ MainWindow::MainWindow(QWidget *parent)
 
 
     init_chart();
-    if (this->myDbFacade->open()){
-        qDebug() << "DB Opened";
-    }else{
-       qDebug() << "DB not Opened";
-    }
+//    if (this->myDbFacade->open()){
+//        qDebug() << "DB Opened";
+//    }else{
+//       qDebug() << "DB not Opened";
+//    }
 }
 
 MainWindow::~MainWindow()
@@ -393,11 +393,11 @@ void MainWindow::fileSaved(QString filename)
     if (technique == "Cyclic")
     {
         // Save in DB (table cyclic)the filename and label
-        this->myDbFacade->insert_values(byte_measures, label, false);
+//        this->myDbFacade->insert_values(byte_measures, label, false);
     }else if (technique == "PDV")
     {
         // Save in DB (table pdv)the filename and label
-         this->myDbFacade->insert_values(byte_measures, label, true);
+//         this->myDbFacade->insert_values(byte_measures, label, true);
     }
 }
 

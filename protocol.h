@@ -13,7 +13,7 @@ public:
 
     Protocol();
     const char *CYCLIC = "scan\n";
-    const char *PDV = "scanp\n";
+    const char *PDV = "hep\n";
     const char* CMD_VERSION_STRING = "pico_ver\n";
 
     typedef enum application_status{
