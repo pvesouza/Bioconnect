@@ -1,2 +1,2 @@
-model_checkpoint_path: "Hep"
-all_model_checkpoint_paths: "Hep"
+model_checkpoint_path: "CNN_Model"
+all_model_checkpoint_paths: "CNN_Model"
